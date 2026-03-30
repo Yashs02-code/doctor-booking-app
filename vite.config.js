@@ -7,7 +7,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  base: '/doctor-booking-app/',
   server: {
     port: 3000,
   },
