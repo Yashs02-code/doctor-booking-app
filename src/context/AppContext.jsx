@@ -35,31 +35,44 @@ export function AppProvider({ children }) {
 
   // Firestore Real-time Sync
   useEffect(() => {
-    const q = query(collection(db, 'appointments'), orderBy('bookedAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const apts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setAppointments(apts);
-      setLoading(false);
-    });
+    let unsubscribe = () => {};
+    try {
+      const q = query(collection(db, 'appointments'), orderBy('bookedAt', 'desc'));
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        const apts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAppointments(apts);
+      }, (error) => {
+        console.error("Firestore snapshot error:", error);
+        // Don't block app loading if Firestore fails
+      });
 
-    // Seed data if empty (for demo)
-    const seedData = async () => {
-      const querySnapshot = await getDocs(collection(db, 'appointments'));
-      if (querySnapshot.empty) {
-        for (const apt of sampleAppointments) {
-          await addDoc(collection(db, 'appointments'), {
-            ...apt,
-            id: undefined // Let Firestore generate ID
-          });
+      // Seed data if empty (for demo)
+      const seedData = async () => {
+        try {
+          const querySnapshot = await getDocs(collection(db, 'appointments'));
+          if (querySnapshot.empty) {
+            for (const apt of sampleAppointments) {
+              await addDoc(collection(db, 'appointments'), {
+                ...apt,
+                id: undefined // Let Firestore generate ID
+              });
+            }
+          }
+        } catch (e) {
+          console.error("Error seeding data:", e);
         }
-      }
-    };
-    seedData();
+      };
+      seedData();
+    } catch (e) {
+      console.error("Firestore connection error:", e);
+    }
 
     return () => unsubscribe();
   }, []);
 
+  // Auth state listener - this is the primary gate for loading
   useEffect(() => {
+    let authResolved = false;
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUser({
@@ -72,10 +85,20 @@ export function AppProvider({ children }) {
       } else {
         setCurrentUser(null);
       }
+      authResolved = true;
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Safety timeout: if auth doesn't resolve in 5 seconds, stop loading anyway
+    // This prevents the white screen if Firebase is misconfigured or unreachable
+    const timeout = setTimeout(() => {
+      if (!authResolved) {
+        console.warn("Auth state took too long to resolve. Proceeding without auth.");
+        setLoading(false);
+      }
+    }, 5000);
+
+    return () => { unsubscribe(); clearTimeout(timeout); };
   }, []);
 
   useEffect(() => {

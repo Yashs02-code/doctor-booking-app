@@ -26,7 +26,7 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
-  const { loading } = useApp();
+  const { loading, currentUser, darkMode } = useApp();
   const location = useLocation();
 
   if (loading) return (
@@ -34,7 +34,6 @@ function AppRoutes() {
       <div className="animate-spin" style={{ width: 40, height: 40, border: '4px solid #2563eb', borderTopColor: 'transparent', borderRadius: '50%' }} />
     </div>
   );
-  const { currentUser, darkMode } = useApp();
   const hideNav = ['/', '/language', '/auth'].includes(location.pathname);
 
   return (
