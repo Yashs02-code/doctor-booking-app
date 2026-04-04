@@ -19,38 +19,32 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import HelpSupport from '../components/profile/HelpSupport';
 
-interface ProfileMenuItemProps {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  darkMode: boolean;
-  danger?: boolean;
-}
-
-const ProfileMenuItem: React.FC<ProfileMenuItemProps> = ({ icon, label, onClick, darkMode, danger }) => (
-  <motion.button
-    whileHover={{ x: 4, scale: 1.01 }}
-    whileTap={{ scale: 0.98 }}
-    onClick={onClick}
-    className={`w-full flex items-center justify-between p-4 rounded-xl transition-colors
-      ${darkMode ? 'hover:bg-slate-800/80' : 'hover:bg-slate-50'} 
-      ${danger ? 'text-rose-500' : darkMode ? 'text-slate-300' : 'text-slate-700'}`}
-  >
-    <div className="flex items-center gap-4">
-      <div className={`p-2 rounded-lg 
-        ${danger ? 'bg-rose-500/10' : darkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
-        {icon}
+function ProfileMenuItem({ icon, label, onClick, darkMode, danger }) {
+  return (
+    <motion.button
+      whileHover={{ x: 4, scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className={`w-full flex items-center justify-between p-4 rounded-xl transition-colors
+        ${darkMode ? 'hover:bg-slate-800/80' : 'hover:bg-slate-50'} 
+        ${danger ? 'text-rose-500' : darkMode ? 'text-slate-300' : 'text-slate-700'}`}
+    >
+      <div className="flex items-center gap-4">
+        <div className={`p-2 rounded-lg 
+          ${danger ? 'bg-rose-500/10' : darkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+          {icon}
+        </div>
+        <span className="font-semibold">{label}</span>
       </div>
-      <span className="font-semibold">{label}</span>
-    </div>
-    <ChevronRight size={18} className="opacity-40" />
-  </motion.button>
-);
+      <ChevronRight size={18} className="opacity-40" />
+    </motion.button>
+  );
+}
 
 export default function ProfilePage() {
   const { currentUser, logout, darkMode } = useApp();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'profile' | 'help'>('profile');
+  const [activeTab, setActiveTab] = useState('profile');
 
   const handleLogout = () => {
     logout();
@@ -183,7 +177,7 @@ export default function ProfilePage() {
 
               {/* Footer Info */}
               <div className="text-center py-10">
-                <p className={`text-sm font-medium opacity-30`}>Version 2.4.0 • Built with FirePulse AI Engine</p>
+                <p className={`text-sm font-medium opacity-30`}>Version 2.4.0 • Built with Medi AI Engine</p>
               </div>
             </motion.div>
           ) : (

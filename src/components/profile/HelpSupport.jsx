@@ -12,12 +12,7 @@ import {
 import AISupportCard from './AISupportCard';
 import SupportCategoryCard from './SupportCategoryCard';
 
-interface HelpSupportProps {
-  onBack: () => void;
-  darkMode: boolean;
-}
-
-export default function HelpSupport({ onBack, darkMode }: HelpSupportProps) {
+export default function HelpSupport({ onBack, darkMode }) {
   const categories = [
     {
       id: 'appointment',
@@ -37,7 +32,7 @@ export default function HelpSupport({ onBack, darkMode }: HelpSupportProps) {
       id: 'how-it-works',
       icon: BookOpen,
       title: 'How It Works',
-      description: 'Learn how to use FirePulse AI',
+      description: 'Learn how to use Medi AI',
       color: 'indigo'
     },
     {

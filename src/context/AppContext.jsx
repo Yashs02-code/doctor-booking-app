@@ -167,7 +167,7 @@ export function AppProvider({ children }) {
       ...appointmentData,
       status: 'confirmed',
       bookedAt: new Date().toISOString(),
-      patientId: currentUser?.uid || 'guest',
+      patientId: currentUser?.id || 'guest',
     };
     try {
       const docRef = await addDoc(collection(db, 'appointments'), newAptData);
@@ -245,8 +245,9 @@ export function AppProvider({ children }) {
     const now = new Date();
     const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     
+    const userId = currentUser?.id || 'guest';
     return allAppointments
-      .filter(a => (a.date >= todayStr) && a.status !== 'cancelled')
+      .filter(a => a.patientId === userId && (a.date >= todayStr) && a.status !== 'cancelled')
       .sort((a, b) => new Date(a.date + ' ' + (a.time || '00:00')) - new Date(b.date + ' ' + (b.time || '00:00')));
   };
 
@@ -254,8 +255,9 @@ export function AppProvider({ children }) {
     const now = new Date();
     const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     
+    const userId = currentUser?.id || 'guest';
     return allAppointments
-      .filter(a => (a.date < todayStr) || a.status === 'cancelled')
+      .filter(a => a.patientId === userId && ((a.date < todayStr) || a.status === 'cancelled'))
       .sort((a, b) => new Date(b.date + ' ' + (b.time || '00:00')) - new Date(a.date + ' ' + (a.time || '00:00')));
   };
 
@@ -263,7 +265,7 @@ export function AppProvider({ children }) {
     darkMode, setDarkMode,
     language, setLanguage,
     demoMode, setDemoMode,
-    currentUser, login, logout,
+    currentUser, loading, login, logout,
     doctors,
     appointments: allAppointments,
     bookAppointment, cancelAppointment, rescheduleAppointment,

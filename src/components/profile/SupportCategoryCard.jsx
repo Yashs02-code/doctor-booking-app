@@ -1,15 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
-
-interface SupportCategoryCardProps {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  onClick?: () => void;
-  darkMode: boolean;
-  color?: string;
-}
 
 export default function SupportCategoryCard({ 
   icon: Icon, 
@@ -18,7 +8,7 @@ export default function SupportCategoryCard({
   onClick, 
   darkMode,
   color = 'blue'
-}: SupportCategoryCardProps) {
+}) {
   
   const getColors = () => {
     switch(color) {

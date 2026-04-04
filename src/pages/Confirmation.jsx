@@ -31,8 +31,8 @@ export default function Confirmation() {
 
       // Fallback: fetch directly from Firestore
       try {
-        const docRef = doc(db, 'appointments', id);
-        const docSnap = await getDoc(docRef);
+        const aptDocRef = doc(db, 'appointments', id);
+        const docSnap = await getDoc(aptDocRef);
         if (docSnap.exists()) {
           setLocalApt({ id: docSnap.id, ...docSnap.data() });
         }
@@ -53,7 +53,7 @@ export default function Confirmation() {
   }, [localApt]);
 
   const apt = localApt;
-  const docData = apt ? getDoctorById(apt.doctorId) : null;
+  const doctor = apt ? getDoctorById(apt.doctorId) : null;
 
   if (fetching || (contextLoading && !apt)) {
     return (
@@ -66,7 +66,7 @@ export default function Confirmation() {
     );
   }
 
-  if (!apt || !docData) {
+  if (!apt || !doctor) {
     return (
       <PageWrapper>
         <div style={{ padding: '100px 24px', maxWidth: 540, margin: '0 auto', textAlign: 'center' }}>
@@ -88,13 +88,13 @@ export default function Confirmation() {
     );
   }
 
-  const doc = docData;
+  // 'doctor' variable is already set above
 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
         title: 'Doctor Appointment Confirmed',
-        text: `I've booked an appointment with ${doc.name} on ${apt.date} at ${apt.time} via MediAI!`,
+        text: `I've booked an appointment with ${doctor.name} on ${apt.date} at ${apt.time} via MediAI!`,
         url: window.location.href,
       }).catch(console.error);
     } else {
@@ -107,12 +107,12 @@ export default function Confirmation() {
       {showConfetti && <ConfettiWrapper />}
       <NotificationBanner 
         type="push" 
-        message={`Your appointment with ${doc.name} is confirmed for ${apt.time} on ${apt.date}.`} 
+        message={`Your appointment with ${doctor.name} is confirmed for ${apt.time} on ${apt.date}.`} 
         duration={6000}
       />
       <NotificationBanner 
         type="sms" 
-        message={`MediAI: Hi ${apt.patientName}, your appointment with ${doc.name} is confirmed. Location: ${doc.hospital}.`} 
+        message={`MediAI: Hi ${apt.patientName}, your appointment with ${doctor.name} is confirmed. Location: ${doctor.hospital}.`} 
         duration={5000}
       />
 
@@ -166,15 +166,15 @@ export default function Confirmation() {
           <div style={{ display: 'flex', gap: 16, marginBottom: 28 }}>
             <div style={{
               width: 56, height: 56, borderRadius: 16,
-              background: `linear-gradient(135deg, ${doc.avatarColor}, ${doc.avatarColor}88)`,
+              background: `linear-gradient(135deg, ${doctor.avatarColor}, ${doctor.avatarColor}88)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'white', fontWeight: 800, fontSize: 18, flexShrink: 0
             }}>
-              {doc.avatar}
+              {doctor.avatar}
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 18, color: darkMode ? '#e2e8f0' : '#0f172a' }}>{doc.name}</div>
-              <div style={{ fontSize: 14, color: '#64748b' }}>{doc.specialty}</div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: darkMode ? '#e2e8f0' : '#0f172a' }}>{doctor.name}</div>
+              <div style={{ fontSize: 14, color: '#64748b' }}>{doctor.specialty}</div>
             </div>
           </div>
 
@@ -189,7 +189,7 @@ export default function Confirmation() {
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               <MapPin size={18} color="#ef4444" />
-              <div style={{ fontSize: 15, fontWeight: 600, color: darkMode ? '#cbd5e1' : '#475569' }}>{doc.hospital}, {doc.location}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: darkMode ? '#cbd5e1' : '#475569' }}>{doctor.hospital}, {doctor.location}</div>
             </div>
           </div>
 

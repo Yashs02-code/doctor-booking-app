@@ -14,7 +14,7 @@ export default function Navbar() {
     { path: '/home',            icon: <LayoutDashboard size={18} />, label: 'Home' },
     { path: '/chat',            icon: <MessageSquare size={18} />,   label: 'AI Book' },
     { path: '/appointments',    icon: <Calendar size={18} />,        label: 'Appointments' },
-    { path: '/doctor-dashboard',icon: <Activity size={18} />,        label: 'Dashboard' },
+    { path: '/doctor-dashboard',icon: <Activity size={18} />,        label: 'Doctor Portal' },
     { path: '/insights',        icon: <TrendingUp size={18} />,      label: 'Insights' },
   ];
 
@@ -134,13 +134,24 @@ export default function Navbar() {
                     <div style={{ fontWeight: 700, fontSize: 14, color: darkMode ? '#e2e8f0' : '#0f172a' }}>{currentUser.name}</div>
                     <div style={{ fontSize: 12, color: '#64748b' }}>{currentUser.email}</div>
                   </div>
-                  <button onClick={handleLogout} style={{
-                    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                    padding: '10px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                    background: 'transparent', color: '#ef4444', fontSize: 14, fontWeight: 500,
-                  }}>
-                    <LogOut size={15} /> Sign Out
-                  </button>
+                  <div style={{ padding: '4px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <button onClick={() => { navigate('/profile'); setMenuOpen(false); }} style={{
+                      display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                      padding: '10px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                      background: 'transparent', color: darkMode ? '#e2e8f0' : '#475569', fontSize: 14, fontWeight: 500,
+                      textAlign: 'left'
+                    }}>
+                      <User size={15} /> My Profile
+                    </button>
+                    <button onClick={handleLogout} style={{
+                      display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                      padding: '10px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                      background: 'transparent', color: '#ef4444', fontSize: 14, fontWeight: 500,
+                      textAlign: 'left'
+                    }}>
+                      <LogOut size={15} /> Sign Out
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </div>

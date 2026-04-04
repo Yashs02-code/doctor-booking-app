@@ -2,34 +2,24 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageSquare, Sparkles, Calendar, AlertCircle, Phone, ArrowRight } from 'lucide-react';
 
-interface QuickSuggestionProps {
-  icon: React.ReactNode;
-  text: string;
-  onClick?: () => void;
-  darkMode: boolean;
+function QuickSuggestion({ icon, text, onClick, darkMode }) {
+  return (
+    <motion.button
+      whileHover={{ y: -2, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all
+        ${darkMode 
+          ? 'bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-300' 
+          : 'bg-white hover:bg-gray-50 border border-slate-200 text-slate-600 shadow-sm'}`}
+    >
+      {icon}
+      <span>{text}</span>
+    </motion.button>
+  );
 }
 
-const QuickSuggestion: React.FC<QuickSuggestionProps> = ({ icon, text, onClick, darkMode }) => (
-  <motion.button
-    whileHover={{ y: -2, scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-    onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all
-      ${darkMode 
-        ? 'bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-300' 
-        : 'bg-white hover:bg-gray-50 border border-slate-200 text-slate-600 shadow-sm'}`}
-  >
-    {icon}
-    <span>{text}</span>
-  </motion.button>
-);
-
-interface AISupportCardProps {
-  darkMode: boolean;
-  onChatClick?: () => void;
-}
-
-export default function AISupportCard({ darkMode, onChatClick }: AISupportCardProps) {
+export default function AISupportCard({ darkMode, onChatClick }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
