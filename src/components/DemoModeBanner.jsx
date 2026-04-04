@@ -13,7 +13,7 @@ export default function DemoModeBanner() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -40, opacity: 0 }}
           style={{
-            background: 'linear-gradient(90deg, #f59e0b, #d97706)',
+            background: 'linear-gradient(90deg, #ffffff, #ffffff)',
             color: 'white',
             textAlign: 'center',
             padding: '8px 16px',
@@ -26,9 +26,9 @@ export default function DemoModeBanner() {
             zIndex: 200,
           }}
         >
-          <Zap size={14} />
+          {/* <Zap size={14} />
           ⚡ Medi AI  — Demo Mode Active. Sample data loaded for competition demonstration.
-          <Zap size={14} />
+          <Zap size={14} /> */}
         </motion.div>
       )}
     </AnimatePresence>

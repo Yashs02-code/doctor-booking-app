@@ -1,8 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, setDoc, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, getDocs } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { doctors as defaultDoctors, sampleAppointments } from '../data/dummyData';
+import toast from 'react-hot-toast';
+
+const GOOGLE_SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_WEBAPP_URL;
 
 const AppContext = createContext();
 
@@ -25,9 +28,9 @@ export function AppProvider({ children }) {
     localStorage.setItem('medi_ai_local_apts', JSON.stringify(localAppointments));
   }, [localAppointments]);
 
-  // Combined appointments list
-  const allAppointments = [...appointments, ...localAppointments].sort((a,b) => 
-    new Date(b.bookedAt) - new Date(a.bookedAt)
+  // Combined appointments list - Default sort by bookedAt (newest first for recent actions)
+  const allAppointments = [...appointments, ...localAppointments].sort((a, b) => 
+    new Date(b.bookedAt || 0) - new Date(a.bookedAt || 0)
   );
 
   // Firestore Real-time Sync
@@ -97,6 +100,45 @@ export function AppProvider({ children }) {
     }
   };
 
+  /**
+   * Syncs appointment data to Google Sheets via Web App URL
+   * @param {Object} data - Appointment data
+   */
+  const syncToGoogleSheet = async (data) => {
+    if (!GOOGLE_SHEET_URL) {
+      console.warn("⚠️ Google Sheet Web App URL missing from .env. Sync disabled.");
+      return;
+    }
+
+    console.log("📡 Attempting to sync booking to Google Sheets...", data.patientName);
+
+    try {
+      // Find doctor name for the sheet if not already included
+      const doc = doctors.find(d => d.id === data.doctorId);
+      const syncData = {
+        ...data,
+        doctorName: data.doctorName || (doc ? doc.name : 'Unknown Doctor'),
+        appointmentType: data.appointmentType || 'Consultation'
+      };
+
+      // We use 'text/plain' to keep it as a "Simple Request" and avoid 
+      // CORS preflight (OPTIONS) which Google Apps Script doesn't support.
+      // mode: 'no-cors' sends the request but we won't see the response content.
+      fetch(GOOGLE_SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify(syncData),
+      });
+
+      console.log("✅ Sync request sent to Google Sheets (no-cors mode). Check the sheet for data.");
+    } catch (error) {
+      console.error("❌ Error syncing to Google Sheet:", error);
+    }
+  };
+
   const bookAppointment = async (appointmentData) => {
     const newAptData = {
       ...appointmentData,
@@ -106,54 +148,92 @@ export function AppProvider({ children }) {
     };
     try {
       const docRef = await addDoc(collection(db, 'appointments'), newAptData);
-      return { id: docRef.id, ...newAptData };
+      const result = { id: docRef.id, ...newAptData };
+      
+      // SYNC TO GOOGLE SHEET (Don't wait for it to finish to avoid delaying UI)
+      syncToGoogleSheet(result);
+      
+      toast.success("Appointment booked and synced! 🏥✅");
+      return result;
     } catch (e) {
       console.error("Error booking to Firestore:", e);
+      
       // PERSISTENT FALLBACK: Save locally if Firestore fails (Permission error, etc)
       const localId = `local_${Date.now()}`;
       const localApt = { id: localId, ...newAptData, isLocal: true };
       setLocalAppointments(prev => [localApt, ...prev]);
-      toast.error("Database connection limited. Saved to local demo mode! 📱", { duration: 4000 });
+      
+      // SYNC TO GOOGLE SHEET (Still attempt sync even if Firestore fails)
+      syncToGoogleSheet(localApt);
+      
+      // More descriptive error message
+      if (e.code === 'permission-denied') {
+        toast.error("Database access denied! Please check Firestore Rules. 🛡️", { duration: 5000 });
+      } else {
+        toast.error("Database connection limited. Saved locally! 📱", { duration: 4000 });
+      }
+      
       return localApt;
     }
   };
 
   const cancelAppointment = async (aptId) => {
+    const apt = allAppointments.find(a => a.id === aptId);
+    if (!apt) return;
+
     if (aptId.startsWith('local_')) {
       setLocalAppointments(prev => prev.map(a => a.id === aptId ? { ...a, status: 'cancelled' } : a));
-      return;
+    } else {
+      try {
+        const aptRef = doc(db, 'appointments', aptId);
+        await updateDoc(aptRef, { status: 'cancelled' });
+      } catch (e) {
+        console.error("Error cancelling: ", e);
+      }
     }
-    try {
-      const aptRef = doc(db, 'appointments', aptId);
-      await updateDoc(aptRef, { status: 'cancelled' });
-    } catch (e) {
-      console.error("Error cancelling: ", e);
-    }
+    
+    // SYNC UPDATE TO GOOGLE SHEET
+    syncToGoogleSheet({ ...apt, status: 'cancelled' });
   };
 
   const rescheduleAppointment = async (aptId, newDate, newTime) => {
+    const apt = allAppointments.find(a => a.id === aptId);
+    if (!apt) return;
+
     if (aptId.startsWith('local_')) {
       setLocalAppointments(prev => prev.map(a => a.id === aptId ? { ...a, date: newDate, time: newTime } : a));
-      return;
+    } else {
+      try {
+        const aptRef = doc(db, 'appointments', aptId);
+        await updateDoc(aptRef, { date: newDate, time: newTime });
+      } catch (e) {
+        console.error("Error rescheduling: ", e);
+      }
     }
-    try {
-      const aptRef = doc(db, 'appointments', aptId);
-      await updateDoc(aptRef, { date: newDate, time: newTime });
-    } catch (e) {
-      console.error("Error rescheduling: ", e);
-    }
+
+    // SYNC UPDATE TO GOOGLE SHEET
+    syncToGoogleSheet({ ...apt, date: newDate, time: newTime });
   };
 
   const getDoctorById = (id) => doctors.find(d => d.id === id);
 
   const getUpcomingAppointments = () => {
-    const today = new Date().toISOString().split('T')[0];
-    return allAppointments.filter(a => a.date >= today && a.status !== 'cancelled');
+    // Use local date for "today" comparison to match user's perspective
+    const now = new Date();
+    const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    
+    return allAppointments
+      .filter(a => (a.date >= todayStr) && a.status !== 'cancelled')
+      .sort((a, b) => new Date(a.date + ' ' + (a.time || '00:00')) - new Date(b.date + ' ' + (b.time || '00:00')));
   };
 
   const getPastAppointments = () => {
-    const today = new Date().toISOString().split('T')[0];
-    return allAppointments.filter(a => a.date < today || a.status === 'cancelled');
+    const now = new Date();
+    const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    
+    return allAppointments
+      .filter(a => (a.date < todayStr) || a.status === 'cancelled')
+      .sort((a, b) => new Date(b.date + ' ' + (b.time || '00:00')) - new Date(a.date + ' ' + (a.time || '00:00')));
   };
 
   const value = {

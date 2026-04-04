@@ -10,7 +10,7 @@ import SkeletonLoader from '../components/SkeletonLoader';
 const STATUS_FILTERS = ['All', 'Confirmed', 'Pending', 'Cancelled'];
 
 function CalendarView({ appointments, getDoctorById, darkMode, navigate }) {
-  const [calMonth, setCalMonth] = useState(new Date('2026-03-01'));
+  const [calMonth, setCalMonth] = useState(new Date());
   const monthStart = startOfMonth(calMonth);
   const monthEnd = endOfMonth(calMonth);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
@@ -46,7 +46,7 @@ function CalendarView({ appointments, getDoctorById, darkMode, navigate }) {
           const dayApts = appointments.filter(a => {
             try { return isSameDay(new Date(a.date), day); } catch { return false; }
           });
-          const isToday = isSameDay(day, new Date('2026-03-30'));
+          const isToday = isSameDay(day, new Date());
           return (
             <div key={day.toISOString()} style={{
               minHeight: 72, borderRadius: 10, padding: '6px 8px',

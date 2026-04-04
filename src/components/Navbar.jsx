@@ -12,7 +12,7 @@ export default function Navbar() {
 
   const navItems = [
     { path: '/home',            icon: <LayoutDashboard size={18} />, label: 'Home' },
-    { path: '/chat',            icon: <MessageSquare size={18} />,   label: 'AI Assistant' },
+    { path: '/chat',            icon: <MessageSquare size={18} />,   label: 'AI Book' },
     { path: '/appointments',    icon: <Calendar size={18} />,        label: 'Appointments' },
     { path: '/doctor-dashboard',icon: <Activity size={18} />,        label: 'Dashboard' },
     { path: '/insights',        icon: <TrendingUp size={18} />,      label: 'Insights' },
@@ -76,7 +76,7 @@ export default function Navbar() {
         {/* Right controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* Demo Mode toggle */}
-          <motion.button
+          {/* <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setDemoMode(!demoMode)}
             style={{
@@ -87,7 +87,7 @@ export default function Navbar() {
             }}
           >
             {demoMode ? '🎭 Demo ON' : '🎭 Demo'}
-          </motion.button>
+          </motion.button> */}
 
           {/* Dark mode */}
           <motion.button

@@ -92,12 +92,12 @@ export default function Home() {
         {/* ─── HERO SECTION ─── */}
         <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}
           style={{ textAlign: 'center', padding: '60px 0 40px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 18px', borderRadius: 30,
+          {/* <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 18px', borderRadius: 30,
             background: darkMode ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.1)',
             border: '1px solid rgba(249,115,22,0.3)', marginBottom: 24 }}>
             <Zap size={14} color="#f97316" />
             <span style={{ fontSize: 12, fontWeight: 700, color: '#2330ddff' }}>NATIONAL INNOVATION AWARD — AI HEALTH TECH 2026</span>
-          </div>
+          </div> */}
 
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 58px)', fontWeight: 900, color: textPrimary, lineHeight: 1.1, marginBottom: 20 }}>
             AI-Powered Autonomous<br />

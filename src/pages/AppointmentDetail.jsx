@@ -13,7 +13,7 @@ export default function AppointmentDetail() {
   const navigate = useNavigate();
   const { darkMode, appointments, getDoctorById, cancelAppointment, rescheduleAppointment } = useApp();
   const [showReschedule, setShowReschedule] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('2026-03-30');
+  const [selectedDate, setSelectedDate] = useState(new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0'));
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [cancelling, setCancelling] = useState(false);
 
@@ -163,17 +163,22 @@ export default function AppointmentDetail() {
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>Select New Date</label>
                   <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8 }}>
-                    {['2026-03-30', '2026-03-31', '2026-04-01'].map(date => (
-                      <button key={date} onClick={() => setSelectedDate(date)} style={{
-                        padding: '10px 14px', borderRadius: 12, border: '1.5px solid',
-                        borderColor: selectedDate === date ? '#2563eb' : (darkMode ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
-                        background: selectedDate === date ? '#2563eb' : 'transparent',
-                        color: selectedDate === date ? 'white' : '#64748b',
-                        fontWeight: 600, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap'
-                      }}>
-                        {date}
-                      </button>
-                    ))}
+                    {[0, 1, 2, 3, 4].map(dayOffset => {
+                      const d = new Date();
+                      d.setDate(d.getDate() + dayOffset);
+                      const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                      return (
+                        <button key={dateStr} onClick={() => setSelectedDate(dateStr)} style={{
+                          padding: '10px 14px', borderRadius: 12, border: '1.5px solid',
+                          borderColor: selectedDate === dateStr ? '#2563eb' : (darkMode ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
+                          background: selectedDate === dateStr ? '#2563eb' : 'transparent',
+                          color: selectedDate === dateStr ? 'white' : '#64748b',
+                          fontWeight: 600, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap'
+                        }}>
+                          {dateStr}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

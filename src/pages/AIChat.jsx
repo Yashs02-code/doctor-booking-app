@@ -117,10 +117,10 @@ export default function AIChat() {
 
   function getDateOptions() {
     const opts = [];
-    for (let i = 1; i <= 5; i++) {
-      const d = new Date('2026-03-27');
+    for (let i = 0; i < 5; i++) {
+      const d = new Date();
       d.setDate(d.getDate() + i);
-      opts.push(d.toISOString().split('T')[0]);
+      opts.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
     }
     return opts;
   }
