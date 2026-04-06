@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, Calendar, Clock, MapPin, Home, Share2, ArrowRight } from 'lucide-react';
@@ -12,6 +13,7 @@ import ConfettiWrapper from '../components/ConfettiWrapper';
 import NotificationBanner from '../components/NotificationBanner';
 
 export default function Confirmation() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { darkMode, appointments, getDoctorById, loading: contextLoading } = useApp();
@@ -48,9 +50,9 @@ export default function Confirmation() {
 
   useEffect(() => {
     if (localApt) {
-      toast.success('Booking Successful! 🎉', { duration: 4000 });
+      toast.success(t('confirmation.booking_success_toast'), { duration: 4000 });
     }
-  }, [localApt]);
+  }, [localApt, t]);
 
   const apt = localApt;
   const doctor = apt ? getDoctorById(apt.doctorId) : null;
@@ -60,7 +62,7 @@ export default function Confirmation() {
       <PageWrapper>
         <div style={{ padding: '100px 24px', maxWidth: 540, margin: '0 auto', textAlign: 'center' }}>
           <SkeletonLoader count={1} />
-          <p style={{ marginTop: 20, color: '#64748b' }}>Confirming your appointment...</p>
+          <p style={{ marginTop: 20, color: '#64748b' }}>{t('confirmation.confirming')}</p>
         </div>
       </PageWrapper>
     );
@@ -71,8 +73,8 @@ export default function Confirmation() {
       <PageWrapper>
         <div style={{ padding: '100px 24px', maxWidth: 540, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ fontSize: 64, marginBottom: 20 }}>❓</div>
-          <h2 style={{ color: darkMode ? '#e2e8f0' : '#0f172a' }}>Appointment Not Found</h2>
-          <p style={{ color: '#64748b', marginTop: 10 }}>We couldn't find the appointment details. Please check your bookings list.</p>
+          <h2 style={{ color: darkMode ? '#e2e8f0' : '#0f172a' }}>{t('confirmation.not_found')}</h2>
+          <p style={{ color: '#64748b', marginTop: 10 }}>{t('confirmation.not_found_desc')}</p>
           <motion.button
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/appointments')}
@@ -81,7 +83,7 @@ export default function Confirmation() {
               background: '#2563eb', color: 'white', fontWeight: 700, cursor: 'pointer'
             }}
           >
-            Go to My Bookings
+            {t('confirmation.go_bookings')}
           </motion.button>
         </div>
       </PageWrapper>
@@ -93,12 +95,12 @@ export default function Confirmation() {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: 'Doctor Appointment Confirmed',
-        text: `I've booked an appointment with ${doctor.name} on ${apt.date} at ${apt.time} via MediAI!`,
+        title: t('confirmation.title'),
+        text: t('confirmation.banner_push', { doctor: doctor.name, time: apt.time, date: apt.date }),
         url: window.location.href,
       }).catch(console.error);
     } else {
-      toast('Copied to clipboard!');
+      toast(t('confirmation.copied'));
     }
   };
 
@@ -107,12 +109,12 @@ export default function Confirmation() {
       {showConfetti && <ConfettiWrapper />}
       <NotificationBanner 
         type="push" 
-        message={`Your appointment with ${doctor.name} is confirmed for ${apt.time} on ${apt.date}.`} 
+        message={t('confirmation.banner_push', { doctor: doctor.name, time: apt.time, date: apt.date })} 
         duration={6000}
       />
       <NotificationBanner 
         type="sms" 
-        message={`MediAI: Hi ${apt.patientName}, your appointment with ${doctor.name} is confirmed. Location: ${doctor.hospital}.`} 
+        message={t('confirmation.banner_sms', { name: apt.patientName, doctor: doctor.name, hospital: doctor.hospital })} 
         duration={5000}
       />
 
@@ -138,7 +140,7 @@ export default function Confirmation() {
           transition={{ delay: 0.2 }}
           style={{ fontSize: 32, fontWeight: 900, color: darkMode ? '#e2e8f0' : '#0f172a', marginBottom: 12 }}
         >
-          Booking Confirmed!
+          {t('confirmation.title')}
         </motion.h1>
         <motion.p
           initial={{ y: 20, opacity: 0 }}
@@ -146,7 +148,7 @@ export default function Confirmation() {
           transition={{ delay: 0.3 }}
           style={{ color: '#64748b', fontSize: 16, marginBottom: 40 }}
         >
-          Your appointment has been successfully scheduled. We've sent the details to your email and phone.
+          {t('confirmation.subtitle')}
         </motion.p>
 
         {/* Appointment Card */}
@@ -207,7 +209,7 @@ export default function Confirmation() {
                   fontSize: 10, fontWeight: 900, textTransform: 'uppercase'
                 }}>Local Demo Mode</div>
               )}
-              <div style={{ fontSize: 11, color: apt?.isLocal ? '#10b981' : '#2563eb', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Booking ID</div>
+              <div style={{ fontSize: 11, color: apt?.isLocal ? '#10b981' : '#2563eb', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{t('confirmation.booking_id')}</div>
               <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '2px', color: darkMode ? '#e2e8f0' : (apt?.isLocal ? '#10b981' : '#2563eb') }}>{id.slice(-8).toUpperCase()}</div>
             </div>
         </motion.div>
@@ -231,7 +233,7 @@ export default function Confirmation() {
                 boxShadow: '0 10px 30px rgba(37,99,235,0.3)',
               }}
             >
-              <Home size={18} /> Go to Dashboard
+              <Home size={18} /> {t('confirmation.go_dashboard')}
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -256,7 +258,7 @@ export default function Confirmation() {
               marginTop: 10,
             }}
           >
-            View n8n Automation Workflow <ArrowRight size={14} />
+            {t('confirmation.view_n8n')} <ArrowRight size={14} />
           </button>
         </motion.div>
       </div>

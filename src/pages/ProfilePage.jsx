@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 import HelpSupport from '../components/profile/HelpSupport';
 
 function ProfileMenuItem({ icon, label, onClick, darkMode, danger }) {
@@ -42,6 +43,7 @@ function ProfileMenuItem({ icon, label, onClick, darkMode, danger }) {
 }
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
   const { currentUser, logout, darkMode } = useApp();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
@@ -52,12 +54,12 @@ export default function ProfilePage() {
   };
 
   const menuItems = [
-    { label: 'My Appointments', icon: <Calendar size={20} />, onClick: () => navigate('/appointments'), danger: false },
-    { label: 'Notifications', icon: <Bell size={20} />, onClick: () => {}, danger: false },
-    { label: 'Payment Methods', icon: <CreditCard size={20} />, onClick: () => {}, danger: false },
-    { label: 'Settings', icon: <Settings size={20} />, onClick: () => {}, danger: false },
-    { label: 'Help & Support', icon: <HelpCircle size={20} />, onClick: () => setActiveTab('help'), danger: false },
-    { label: 'Logout', icon: <LogOut size={20} />, onClick: handleLogout, danger: true },
+    { label: t('profile_page.my_appointments'), icon: <Calendar size={20} />, onClick: () => navigate('/appointments'), danger: false },
+    { label: t('profile_page.notifications'), icon: <Bell size={20} />, onClick: () => {}, danger: false },
+    { label: t('profile_page.payment_methods'), icon: <CreditCard size={20} />, onClick: () => {}, danger: false },
+    { label: t('profile_page.settings'), icon: <Settings size={20} />, onClick: () => {}, danger: false },
+    { label: t('profile_page.help_support'), icon: <HelpCircle size={20} />, onClick: () => setActiveTab('help'), danger: false },
+    { label: t('profile_page.logout'), icon: <LogOut size={20} />, onClick: handleLogout, danger: true },
   ];
 
   if (!currentUser) return null;
@@ -105,7 +107,7 @@ export default function ProfilePage() {
                         <h1 className="text-2xl sm:text-4xl font-black tracking-tight">{currentUser.name}</h1>
                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
                           <CheckCircle2 size={14} className="text-blue-500" />
-                          <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Verified</span>
+                          <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{t('profile_page.verified')}</span>
                         </div>
                       </div>
                       <p className="text-sm sm:text-lg font-medium text-slate-500 dark:text-slate-400">{currentUser.email}</p>
@@ -114,11 +116,11 @@ export default function ProfilePage() {
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                       <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider
                         ${darkMode ? 'bg-white/5 text-indigo-400 border border-white/5' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'}`}>
-                        {currentUser.role || 'User Account'}
+                        {currentUser.role || t('profile_page.user_account')}
                       </span>
                       <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider
                         ${darkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
-                        Neural Sync Active
+                        {t('profile_page.neural_sync')}
                       </span>
                     </div>
 
@@ -128,7 +130,7 @@ export default function ProfilePage() {
                         whileTap={{ scale: 0.95 }}
                         className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-8 rounded-2xl bg-slate-950 dark:bg-white text-white dark:text-slate-900 font-black transition-all shadow-xl text-sm uppercase tracking-widest"
                       >
-                        <Edit2 size={16} /> Edit Profile
+                        <Edit2 size={16} /> {t('profile_page.edit_profile')}
                       </motion.button>
                     </div>
                   </div>
@@ -142,7 +144,7 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className={`p-6 rounded-3xl border 
                   ${darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-100 shadow-sm'}`}>
-                  <h3 className="text-sm font-black uppercase tracking-widest opacity-40 mb-6">Personal Settings</h3>
+                  <h3 className="text-sm font-black uppercase tracking-widest opacity-40 mb-6">{t('profile_page.personal_settings')}</h3>
                   <div className="space-y-1">
                     {menuItems.slice(0, 3).map((item, idx) => (
                       <ProfileMenuItem 
@@ -159,7 +161,7 @@ export default function ProfilePage() {
 
                 <div className={`p-6 rounded-3xl border 
                   ${darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-100 shadow-sm'}`}>
-                  <h3 className="text-sm font-black uppercase tracking-widest opacity-40 mb-6">App & Support</h3>
+                  <h3 className="text-sm font-black uppercase tracking-widest opacity-40 mb-6">{t('profile_page.app_support')}</h3>
                   <div className="space-y-1">
                     {menuItems.slice(3).map((item, idx) => (
                       <ProfileMenuItem 
@@ -177,7 +179,7 @@ export default function ProfilePage() {
 
               {/* Footer Info */}
               <div className="text-center py-10">
-                <p className={`text-sm font-medium opacity-30`}>Version 2.4.0 • Built with Medi AI Engine</p>
+                <p className={`text-sm font-medium opacity-30`}>{t('profile_page.version')}</p>
               </div>
             </motion.div>
           ) : (

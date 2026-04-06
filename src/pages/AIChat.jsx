@@ -10,24 +10,21 @@ import SlotPicker from '../components/SlotPicker';
 import DoctorCard from '../components/DoctorCard';
 import toast from 'react-hot-toast';
 
-// AI conversation step engine
 const STEPS = ['name', 'age', 'gender', 'symptoms', 'doctor', 'type', 'date', 'slot', 'confirm'];
 
-
-function getAIMessage(step, ctx = {}) {
+function getAIMessage(step, t, ctx = {}) {
   const msgs = {
-    name: "Hello! 👋 I'm **Medi AI**, your autonomous scheduling assistant. I can book, reschedule, or cancel appointments — just tell me what you need. May I know your **full name**, please?",
-    age: `Great to meet you, **${ctx.name}**! 😊 How old are you?`,
-    gender: `Got it! And what is your **gender**? _(Male / Female / Other)_`,
-    symptoms: `Thanks! Could you briefly describe your **symptoms** or the reason for your visit? This helps me find the right specialist for you.`,
-    doctor: `I've found some excellent specialists for you. Which **doctor** would you like to consult with?`,
-    type: `I see. Would you like to book a **General Check-up** or a **Specific Consultation**?`,
-    suggest: `Based on your symptoms, I recommend a specialist. Please review the doctor suggestion below and confirm to proceed.`,
-    date: `Perfect! Which **date** would you prefer for your appointment? I have availability soon.`,
-    slot: `Great! Here are the available time **slots** for ${ctx.doctor?.name || 'your doctor'} on **${ctx.date}**:`,
-    confirm: `Almost done! Here's your booking summary. Shall I **confirm** this appointment? 🎉`,
+    name: t('aichat.steps.name'),
+    age: t('aichat.steps.age', { name: ctx.name }),
+    gender: t('aichat.steps.gender'),
+    symptoms: t('aichat.steps.symptoms'),
+    doctor: t('aichat.steps.doctor'),
+    type: t('aichat.steps.type'),
+    date: t('aichat.steps.date'),
+    slot: t('aichat.steps.slot', { doctor: ctx.doctor?.name || 'doctor', date: ctx.date }),
+    confirm: t('aichat.steps.confirm'),
   };
-  return msgs[step] || "Let me help you with that!";
+  return msgs[step] || t('aichat.complete');
 }
 
 function AITyping() {
@@ -44,6 +41,7 @@ function formatMessage(text) {
 }
 
 export default function AIChat() {
+  const { t } = useTranslation();
   const { darkMode, doctors, bookAppointment, currentUser } = useApp();
   const navigate = useNavigate();
 
@@ -70,7 +68,7 @@ export default function AIChat() {
 
   // Initial greeting
   useEffect(() => {
-    addAI(getAIMessage('name'), 600);
+    addAI(getAIMessage('name', t), 600);
   }, []);
 
   function addAI(text, delay = 400) {
@@ -145,35 +143,35 @@ export default function AIChat() {
       const newCtx = { ...ctx, name: val };
       setCtx(newCtx);
       setStep('age');
-      addAI(getAIMessage('age', newCtx), 1000);
+      addAI(getAIMessage('age', t, newCtx), 1000);
     } else if (step === 'age') {
       const newCtx = { ...ctx, age: val };
       setCtx(newCtx);
       setStep('gender');
-      addAI(getAIMessage('gender', newCtx), 1000);
+      addAI(getAIMessage('gender', t, newCtx), 1000);
     } else if (step === 'gender') {
       const newCtx = { ...ctx, gender: val };
       setCtx(newCtx);
       setStep('symptoms');
-      addAI(getAIMessage('symptoms', newCtx), 1000);
+      addAI(getAIMessage('symptoms', t, newCtx), 1000);
     } else if (step === 'symptoms') {
       const candidates = detectDoctors(val);
       const newCtx = { ...ctx, symptoms: val, candidates };
       setCtx(newCtx);
       setStep('doctor');
-      addAI(`🔍 I've found some available specialists for you. I recommend **${candidates[0].name}**, but please **choose the doctor** you'd prefer:`, 1000);
+      addAI(t('aichat.search_docs', { name: candidates[0].name }), 1000);
     } else if (step === 'doctor') {
       const doc = doctors.find(d => d.name === val || d.id === val);
       const newCtx = { ...ctx, doctor: doc };
       setCtx(newCtx);
       setSuggestedDoctor(doc);
       setStep('type');
-      addAI(`Excellent choice! **${doc.name}** is highly recommended. Is this for a routine **Check-up** or a **Consultation**?`, 1000);
+      addAI(t('aichat.doc_choice', { name: doc.name }), 1000);
     } else if (step === 'type') {
       const newCtx = { ...ctx, appointmentType: val };
       setCtx(newCtx);
       setStep('date');
-      addAI(getAIMessage('date', newCtx), 1000);
+      addAI(getAIMessage('date', t, newCtx), 1000);
     } else if (step === 'date') {
       const doctor = ctx.doctor;
       const slots = doctor?.slots?.[val] || ['09:00', '10:30', '11:00', '14:00', '15:30'];
@@ -183,22 +181,32 @@ export default function AIChat() {
       setAvailableSlots(slots);
       setBookedSlots(bSlots);
       setStep('slot');
-      addAI(getAIMessage('slot', { ...newCtx }), 1000);
+      addAI(getAIMessage('slot', t, { ...newCtx }), 1000);
     } else if (step === 'slot') {
       const newCtx = { ...ctx, time: val };
       setCtx(newCtx);
       setSelectedSlot(val);
       setStep('confirm');
       addAI(
-        `📋 **Booking Summary:**\n\n👤 Patient: **${newCtx.name}** (${newCtx.age}, ${newCtx.gender})\n🩺 Doctor: **${newCtx.doctor.name}**\n🏥 Hospital: ${newCtx.doctor.hospital}\n📝 Type: **${newCtx.appointmentType}**\n📅 Date: **${newCtx.date}** at **${newCtx.time}**\n💰 Fee: ₹${newCtx.doctor.fee}\n\nType **Yes** to confirm or **No** to cancel.`,
+        t('aichat.summary', {
+          name: newCtx.name,
+          age: newCtx.age,
+          gender: newCtx.gender,
+          doctor: newCtx.doctor.name,
+          hospital: newCtx.doctor.hospital,
+          type: newCtx.appointmentType,
+          date: newCtx.date,
+          time: newCtx.time,
+          fee: newCtx.doctor.fee
+        }),
         1400
       );
     } else if (step === 'confirm') {
-      if (val.toLowerCase().startsWith('y') || val.toLowerCase() === 'ok') {
+      if (val.toLowerCase().startsWith('y') || val.toLowerCase() === 'ok' || val.toLowerCase().includes('यश') || val.toLowerCase().includes('हो')) {
         processBooking();
       } else {
         setDone(true);
-        addAI("No problem! Your appointment has been cancelled. Feel free to start over anytime! 😊", 700);
+        addAI(t('aichat.cancelled'), 700);
       }
     }
   }
@@ -217,7 +225,7 @@ export default function AIChat() {
     });
     
     setDone(true);
-    addAI(`🎉 **Booking Confirmed!** Your appointment with **${ctx.doctor.name}** has been booked for **${ctx.date}** at **${ctx.time}**.\n\n📱 A confirmation SMS has been sent to your registered number.\n\nRedirecting to your confirmation page...`, 600);
+    addAI(t('aichat.confirmed', { doctor: ctx.doctor.name, date: ctx.date, time: ctx.time }), 600);
     
     const apt = await aptPromise;
     if (apt) {
@@ -238,7 +246,7 @@ export default function AIChat() {
     r.start();
     recogRef.current = r;
     setListening(true);
-    toast('🎤 Listening... speak now');
+    toast(`🎤 ${t('aichat.listening')}`);
   };
 
   const dateOptions = getDateOptions();
@@ -262,8 +270,8 @@ export default function AIChat() {
             <div style={{ position: 'absolute', bottom: 1, right: 1, width: 10, height: 10, borderRadius: '50%', background: '#10b981', border: '2px solid white' }} />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 16, color: darkMode ? '#e2e8f0' : '#0f172a' }}>Medi AI Assistant</div>
-            <div style={{ fontSize: 12, color: '#10b981', fontWeight: 500 }}>● Online — Autonomous AI Receptionist</div>
+            <div style={{ fontWeight: 800, fontSize: 16, color: darkMode ? '#e2e8f0' : '#0f172a' }}>{t('aichat.assistant_name')}</div>
+            <div style={{ fontSize: 12, color: '#10b981', fontWeight: 500 }}>● {t('aichat.online_status')}</div>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, overflow: 'hidden' }}>
             {STEPS.map((s, i) => (
@@ -286,14 +294,14 @@ export default function AIChat() {
               <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600, marginBottom: 12, textAlign: 'center' }}>What would you like to do?</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {[
-                  { icon: '🗓', label: 'Book Appointment', color: '#2563eb', action: 'I want to book an appointment' },
-                  { icon: '🔄', label: 'Reschedule', color: '#7c3aed', action: 'I want to reschedule my appointment' },
-                  { icon: '❌', label: 'Cancel Booking', color: '#ef4444', action: 'I want to cancel my appointment' },
-                  { icon: '🔍', label: 'Check Availability', color: '#10b981', action: 'I want to check available slots' },
+                  { icon: '🗓', label: t('appointments_list.book_with_ai'), color: '#2563eb', action: 'I want to book an appointment' },
+                  { icon: '🔄', label: t('appointments.reschedule'), color: '#7c3aed', action: 'I want to reschedule my appointment' },
+                  { icon: '❌', label: t('appointments.cancel'), color: '#ef4444', action: 'I want to cancel my appointment' },
+                  { icon: '🔍', label: t('appointments_list.search_placeholder').split(' ')[0], color: '#10b981', action: 'I want to check available slots' },
                 ].map(qa => (
                   <motion.button key={qa.label}
                     whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => { addUser(qa.action); processStep(qa.action.replace('I want to ','').split(' ')[0] === 'book' ? 'skip-to-name' : qa.action); setStep('name'); addAI(getAIMessage('name'), 800); }}
+                    onClick={() => { addUser(qa.action); processStep(qa.action.replace('I want to ','').split(' ')[0] === 'book' ? 'skip-to-name' : qa.action); setStep('name'); addAI(getAIMessage('name', t), 800); }}
                     style={{
                       padding: '16px', borderRadius: 16, border: `1.5px solid ${qa.color}30`,
                       background: darkMode ? `${qa.color}12` : `${qa.color}08`,
@@ -403,7 +411,7 @@ export default function AIChat() {
                           background: '#2563eb', color: 'white', 
                           padding: '2px 10px', fontSize: 9, fontWeight: 900,
                           borderBottomLeftRadius: 12, textTransform: 'uppercase'
-                        }}>Recommended</div>
+                        }}>{t('aichat.recommended')}</div>
                       )}
                       <div style={{ 
                         width: 48, height: 48, borderRadius: 12, 
@@ -427,13 +435,13 @@ export default function AIChat() {
                     background: 'none', border: 'none', color: '#64748b', 
                     fontSize: 12, fontWeight: 600, cursor: 'pointer', 
                     marginTop: 4, textAlign: 'center', width: '100%' 
-                  }}>None of these? Describe symptoms again</button>
+                  }}>{t('aichat.none_of_these')}</button>
                 </div>
               )}
-              {step === 'type' && ['Check-up', 'Consultation'].map(t => (
-                <motion.button key={t} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => quickReply(t)}
+              {step === 'type' && ['Check-up', 'Consultation'].map(type => (
+                <motion.button key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => quickReply(type)}
                   style={{ padding: '8px 18px', borderRadius: 20, border: '1.5px solid #7c3aed', background: 'transparent', color: '#7c3aed', cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: 'Inter' }}>
-                  {t === 'Check-up' ? '🩺 ' : '💬 '}{t}
+                  {type === 'Check-up' ? '🩺 ' : '💬 '}{type === 'Check-up' ? t('aichat.check_up') : t('aichat.consultation')}
                 </motion.button>
               ))}
               {step === 'date' && dateOptions.map(d => (
@@ -442,16 +450,16 @@ export default function AIChat() {
                   📅 {d}
                 </motion.button>
               ))}
-              {step === 'confirm' && ['Yes, confirm!', 'No, cancel'].map(c => (
+              {step === 'confirm' && [t('aichat.yes_confirm'), t('aichat.no_cancel')].map(c => (
                 <motion.button key={c} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => quickReply(c)}
                   style={{
                     padding: '10px 20px', borderRadius: 20, border: 'none', cursor: 'pointer',
-                    background: c.startsWith('Yes') ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(239,68,68,0.15)',
-                    color: c.startsWith('Yes') ? 'white' : '#ef4444',
+                    background: c === t('aichat.yes_confirm') ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(239,68,68,0.15)',
+                    color: c === t('aichat.yes_confirm') ? 'white' : '#ef4444',
                     fontWeight: 700, fontSize: 14, fontFamily: 'Inter',
-                    boxShadow: c.startsWith('Yes') ? '0 4px 16px rgba(16,185,129,0.4)' : 'none',
+                    boxShadow: c === t('aichat.yes_confirm') ? '0 4px 16px rgba(16,185,129,0.4)' : 'none',
                   }}>
-                  {c.startsWith('Yes') ? '✅ ' : '❌ '}{c}
+                  {c === t('aichat.yes_confirm') ? '✅ ' : '❌ '}{c}
                 </motion.button>
               ))}
             </motion.div>
@@ -487,7 +495,7 @@ export default function AIChat() {
               <div style={{ position: 'absolute', top: -20, left: '50%', transform: 'translateX(-50%)',
                 fontSize: 8, fontWeight: 800, color: '#7c3aed', whiteSpace: 'nowrap',
                 background: 'rgba(124,58,237,0.12)', padding: '1px 6px', borderRadius: 6,
-                border: '1px solid rgba(124,58,237,0.3)' }}>VOICE AI</div>
+                border: '1px solid rgba(124,58,237,0.3)' }}>{t('aichat.voice_ai')}</div>
             </div>
           )}
 
@@ -496,7 +504,7 @@ export default function AIChat() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSend()}
-            placeholder={done ? 'Conversation complete!' : 'Type your message…'}
+            placeholder={done ? t('aichat.complete') : t('aichat.placeholder')}
             disabled={done || step === 'slot'}
             className="input-field"
             style={{ flex: 1 }}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MessageSquare, Calendar, TrendingUp, Zap, ChevronRight, Clock, Users, Star, Activity, CheckCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 import PageWrapper from '../components/PageWrapper';
 import DoctorCard from '../components/DoctorCard';
 import { healthTips, specialties } from '../data/dummyData';
@@ -53,6 +54,7 @@ const solutions = [
 ];
 
 export default function Home() {
+  const { t } = useTranslation();
   const { currentUser, darkMode, doctors, getUpcomingAppointments, getDoctorById } = useApp();
   const navigate = useNavigate();
   const [tipIdx, setTipIdx] = useState(0);
@@ -100,14 +102,14 @@ export default function Home() {
           </div> */}
 
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 58px)', fontWeight: 900, color: textPrimary, lineHeight: 1.1, marginBottom: 20 }}>
-            AI-Powered Autonomous<br />
+            {t('home.hero_title_ai')}<br />
             <span style={{ background: 'linear-gradient(135deg, #f97316, #ef4444, #7c3aed)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Scheduling System
+              {t('home.hero_title_system')}
             </span>
           </h1>
 
           <p style={{ fontSize: 18, color: '#64748b', maxWidth: 560, margin: '0 auto 36px', lineHeight: 1.7 }}>
-            Medi AI acts as an autonomous receptionist — understanding patient intent, resolving conflicts, and booking appointments without any human intervention.
+            {t('home.hero_desc')}
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -115,7 +117,7 @@ export default function Home() {
               onClick={() => navigate('/chat')}
               style={{ padding: '14px 32px', borderRadius: 16, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 15,
                 boxShadow: '0 8px 30px rgba(30, 28, 178, 0.4)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              🤖 Try AI Assistant <ChevronRight size={18} />
+              🤖 {t('home.hero_try_ai')} <ChevronRight size={18} />
             </motion.button>
             <motion.button whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}
               onClick={() => navigate('/insights')}
@@ -123,7 +125,7 @@ export default function Home() {
                 background: 'transparent', color: textPrimary,
                 border: darkMode ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(15,23,42,0.2)',
                 display: 'flex', alignItems: 'center', gap: 8 }}>
-              📊 View Insights
+              📊 {t('home.hero_view_insights')}
             </motion.button>
           </div>
         </motion.div>
@@ -131,7 +133,12 @@ export default function Home() {
         {/* ─── LIVE STATS ─── */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 48 }}>
-          {liveStats.map((s, i) => (
+          {[
+            { label: t('home.stats.booked'), value: '12,480', icon: '📅', color: '#2563eb' },
+            { label: t('home.stats.saved'), value: '3,200 hrs', icon: '⏱️', color: '#10b981' },
+            { label: t('home.stats.onboarded'), value: '340+', icon: '👨‍⚕️', color: '#7c3aed' },
+            { label: t('home.stats.satisfaction'), value: '4.9 / 5', icon: '⭐', color: '#f59e0b' },
+          ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 + i * 0.07 }}
               style={{ ...card, textAlign: 'center', padding: '20px', boxShadow: `0 8px 24px ${s.color}15` }}>
               <div style={{ fontSize: 28 }}>{s.icon}</div>
@@ -149,13 +156,18 @@ export default function Home() {
             style={{ fontSize: 14, color: darkMode ? '#cbd5e1' : '#475569', margin: 0, flex: 1 }}>
             {healthTips[tipIdx]}
           </motion.p>
-          <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, whiteSpace: 'nowrap' }}>Daily Health Tip</span>
+          <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, whiteSpace: 'nowrap' }}>{t('home.health_tip_label')}</span>
         </motion.div>
 
         {/* ─── QUICK ACTIONS ─── */}
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 16 }}>Quick Actions</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 16 }}>{t('home.quick_actions')}</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginBottom: 48 }}>
-          {quickActions.map((a, i) => (
+          {[
+            { icon: <MessageSquare size={22} color="white" />, label: t('home.actions.ai_assistant'), sub: t('home.actions.ai_assistant_sub'), color: '#2563eb', gradient: 'linear-gradient(135deg,#2563eb,#4f46e5)', path: '/chat' },
+            { icon: <Calendar size={22} color="white" />, label: t('home.actions.appointments'), sub: t('home.actions.appointments_sub'), color: '#10b981', gradient: 'linear-gradient(135deg,#10b981,#059669)', path: '/appointments' },
+            { icon: <Activity size={22} color="white" />, label: t('home.actions.dashboard'), sub: t('home.actions.dashboard_sub'), color: '#7c3aed', gradient: 'linear-gradient(135deg,#7c3aed,#6d28d9)', path: '/doctor-dashboard' },
+            { icon: <TrendingUp size={22} color="white" />, label: t('home.actions.insights'), sub: t('home.actions.insights_sub'), color: '#f59e0b', gradient: 'linear-gradient(135deg,#f59e0b,#d97706)', path: '/insights' },
+          ].map((a, i) => (
             <motion.button key={a.label}
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.08 }}
               whileHover={{ y: -6, boxShadow: `0 20px 50px ${a.color}30` }}
@@ -198,7 +210,7 @@ export default function Home() {
 
 
         {/* ─── SPECIALTIES ─── */}
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 16 }}>Browse by Specialty</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 16 }}>{t('home.browse_specialty')}</h2>
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, marginBottom: 48 }}>
           {specialties.map((s, i) => (
             <motion.button key={s.id}
@@ -218,10 +230,10 @@ export default function Home() {
         {upcoming.length > 0 && (
           <div style={{ marginBottom: 48 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, margin: 0 }}>Your Upcoming Appointments</h2>
+              <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, margin: 0 }}>{t('home.upcoming_appointments')}</h2>
               <button onClick={() => navigate('/appointments')}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2563eb', fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 4 }}>
-                View all <ChevronRight size={16} />
+                {t('home.view_all')} <ChevronRight size={16} />
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -253,19 +265,19 @@ export default function Home() {
         {/* ─── PROBLEM vs SOLUTION ─── */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           style={{ marginBottom: 48 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 24 }}>Problem → Solution</h2>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 24 }}>{t('home.problem_solution')}</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             {/* Problem */}
             <div style={{ ...card, borderLeft: '3px solid #ef4444' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                 <span style={{ fontSize: 18 }}>❌</span>
-                <h3 style={{ fontWeight: 800, color: '#ef4444', margin: 0, fontSize: 16 }}>Traditional Scheduling</h3>
+                <h3 style={{ fontWeight: 800, color: '#ef4444', margin: 0, fontSize: 16 }}>{t('home.traditional')}</h3>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {problems.map((p, i) => (
+                {t('home.problems', { returnObjects: true }).map((p, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <span style={{ fontSize: 16, flexShrink: 0 }}>{p.icon}</span>
-                    <span style={{ fontSize: 13, color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.5 }}>{p.text}</span>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>❌</span>
+                    <span style={{ fontSize: 13, color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.5 }}>{p}</span>
                   </div>
                 ))}
               </div>
@@ -274,13 +286,13 @@ export default function Home() {
             <div style={{ ...card, borderLeft: '3px solid #10b981' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                 <span style={{ fontSize: 18 }}>✅</span>
-                <h3 style={{ fontWeight: 800, color: '#10b981', margin: 0, fontSize: 16 }}>Medi AI Scheduler</h3>
+                <h3 style={{ fontWeight: 800, color: '#10b981', margin: 0, fontSize: 16 }}>{t('home.medi_ai')}</h3>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {solutions.map((s, i) => (
+                {t('home.solutions', { returnObjects: true }).map((s, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <span style={{ fontSize: 16, flexShrink: 0 }}>{s.icon}</span>
-                    <span style={{ fontSize: 13, color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.5 }}>{s.text}</span>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>✅</span>
+                    <span style={{ fontSize: 13, color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.5 }}>{s}</span>
                   </div>
                 ))}
               </div>
@@ -294,7 +306,7 @@ export default function Home() {
 
         {/* ─── FEATURED DOCTORS ─── */}
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 16 }}>Featured Doctors</h2>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 16 }}>{t('home.featured_doctors')}</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
             {featuredDoctors.map(doc => (
               <DoctorCard key={doc.id} doctor={doc} onBook={() => navigate('/chat')} />

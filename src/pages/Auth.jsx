@@ -11,9 +11,11 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 
 export default function Auth() {
+  const { t } = useTranslation();
   const { darkMode } = useApp();
   const navigate = useNavigate();
   const [mode, setMode] = useState('login');
@@ -30,13 +32,13 @@ export default function Auth() {
     try {
       if (mode === 'login') {
         await signInWithEmailAndPassword(auth, form.email, form.password);
-        toast.success('Welcome back! 🎉');
+        toast.success(t('auth.welcome_back'));
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
         await updateProfile(userCredential.user, {
           displayName: form.name,
         });
-        toast.success('Account created successfully! 🚀');
+        toast.success(t('auth.account_created'));
       }
       navigate('/home');
     } catch (error) {
@@ -51,7 +53,7 @@ export default function Auth() {
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-      toast.success('Signed in with Google! 🎉');
+      toast.success(t('auth.google_success'));
       navigate('/home');
     } catch (error) {
       console.error(error);
@@ -64,13 +66,13 @@ export default function Auth() {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!resetEmail.trim()) {
-      toast.error('Please enter your email address');
+      toast.error(t('auth.email_address')); // Reusing or should I add a specific message?
       return;
     }
     setResetLoading(true);
     try {
       await sendPasswordResetEmail(auth, resetEmail.trim());
-      toast.success('Password reset email sent! Check your inbox 📧');
+      toast.success(t('auth.reset_email_sent'));
       setShowForgot(false);
       setResetEmail('');
     } catch (error) {
@@ -115,7 +117,7 @@ export default function Auth() {
             </div>
             <span style={{ fontWeight: 800, fontSize: 22, background: 'linear-gradient(135deg, #2563eb, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>MediAI</span>
           </div>
-          <p style={{ color: '#64748b', fontSize: 14 }}>Your AI-powered healthcare companion</p>
+          <p style={{ color: '#64748b', fontSize: 14 }}>{t('auth.companion')}</p>
         </div>
 
         {/* Toggle */}
@@ -129,7 +131,7 @@ export default function Auth() {
                 fontWeight: 600, fontSize: 14, transition: 'all 0.3s',
               }}
             >
-              {m === 'login' ? '🔑 Sign In' : '✨ Register'}
+              {m === 'login' ? `🔑 ${t('auth.sign_in')}` : `✨ ${t('auth.register')}`}
             </motion.button>
           ))}
         </div>
@@ -140,7 +142,7 @@ export default function Auth() {
               <motion.div key="name" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden', marginBottom: 14 }}>
                 <div style={{ position: 'relative' }}>
                   <User size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                  <input className="input-field" style={{ paddingLeft: 42 }} placeholder="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                  <input className="input-field" style={{ paddingLeft: 42 }} placeholder={t('auth.full_name')} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
                 </div>
               </motion.div>
             )}
@@ -149,7 +151,7 @@ export default function Auth() {
           <div style={{ marginBottom: 14 }}>
             <div style={{ position: 'relative' }}>
               <Mail size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-              <input className="input-field" style={{ paddingLeft: 42 }} type="email" placeholder="Email address" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
+              <input className="input-field" style={{ paddingLeft: 42 }} type="email" placeholder={t('auth.email_address')} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
             </div>
           </div>
 
@@ -158,7 +160,7 @@ export default function Auth() {
               <motion.div key="phone" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden', marginBottom: 14 }}>
                 <div style={{ position: 'relative' }}>
                   <Phone size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                  <input className="input-field" style={{ paddingLeft: 42 }} placeholder="Phone Number" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                  <input className="input-field" style={{ paddingLeft: 42 }} placeholder={t('auth.phone')} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
                 </div>
               </motion.div>
             )}
@@ -167,7 +169,7 @@ export default function Auth() {
           <div style={{ marginBottom: mode === 'login' ? 8 : 24 }}>
             <div style={{ position: 'relative' }}>
               <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-              <input className="input-field" style={{ paddingLeft: 42, paddingRight: 42 }} type={showPass ? 'text' : 'password'} placeholder="Password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required />
+              <input className="input-field" style={{ paddingLeft: 42, paddingRight: 42 }} type={showPass ? 'text' : 'password'} placeholder={t('auth.password')} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required />
               <button type="button" onClick={() => setShowPass(!showPass)}
                 style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -188,7 +190,7 @@ export default function Auth() {
                   padding: 0, letterSpacing: '0.01em',
                 }}
               >
-                🔓 Forgot Password?
+               {`🔓 ${t('auth.forgot_password')}`}
               </button>
             </div>
           )}
@@ -203,13 +205,13 @@ export default function Auth() {
               transition: 'all 0.3s',
             }}
           >
-            {loading ? '⏳ Please wait…' : mode === 'login' ? '🔑 Sign In' : '🚀 Create Account'}
+            {loading ? `⏳ ${t('auth.please_wait')}` : mode === 'login' ? `🔑 ${t('auth.sign_in')}` : `🚀 ${t('auth.create_account')}`}
           </motion.button>
         </form>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
           <div style={{ flex: 1, height: 1, background: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(148,163,184,0.3)' }} />
-          <span style={{ color: '#94a3b8', fontSize: 13 }}>or</span>
+          <span style={{ color: '#94a3b8', fontSize: 13 }}>{t('auth.or')}</span>
           <div style={{ flex: 1, height: 1, background: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(148,163,184,0.3)' }} />
         </div>
 
@@ -229,14 +231,14 @@ export default function Auth() {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          Continue with Google
+          {t('auth.continue_google')}
         </motion.button>
 
         <p style={{ textAlign: 'center', marginTop: 20, color: '#64748b', fontSize: 13 }}>
-          {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+          {mode === 'login' ? t('auth.dont_have_account') : t('auth.already_have_account')}
           <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2563eb', fontWeight: 600 }}>
-            {mode === 'login' ? 'Register' : 'Sign In'}
+            {mode === 'login' ? t('auth.register') : t('auth.sign_in')}
           </button>
         </p>
       </motion.div>
@@ -291,10 +293,10 @@ export default function Auth() {
                   background: 'linear-gradient(135deg, #2563eb, #10b981)',
                   WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                 }}>
-                  Reset Password
+                  {t('auth.reset_password')}
                 </h2>
                 <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
-                  Enter your email and we'll send you a link to reset your password.
+                  {t('auth.reset_desc')}
                 </p>
               </div>
 
@@ -306,7 +308,7 @@ export default function Auth() {
                     className="input-field"
                     style={{ paddingLeft: 42 }}
                     type="email"
-                    placeholder="Your email address"
+                    placeholder={t('auth.email_address')}
                     value={resetEmail}
                     onChange={e => setResetEmail(e.target.value)}
                     required
@@ -328,7 +330,7 @@ export default function Auth() {
                     transition: 'all 0.3s', marginBottom: 12,
                   }}
                 >
-                  {resetLoading ? '⏳ Sending…' : '📧 Send Reset Link'}
+                  {resetLoading ? `⏳ ${t('auth.please_wait')}` : `📧 ${t('auth.send_reset_link')}`}
                 </motion.button>
 
                 <button
@@ -341,7 +343,7 @@ export default function Auth() {
                     color: '#64748b', transition: 'all 0.2s',
                   }}
                 >
-                  Cancel
+                  {t('auth.cancel')}
                 </button>
               </form>
             </motion.div>

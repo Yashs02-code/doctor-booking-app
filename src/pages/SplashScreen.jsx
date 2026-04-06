@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Activity } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function SplashScreen() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
 
@@ -69,21 +71,25 @@ export default function SplashScreen() {
             transition={{ delay: 0.6, duration: 0.6 }}
             style={{ color: 'rgba(255,255,255,0.6)', fontSize: 16, marginTop: 8, fontWeight: 400, letterSpacing: '0.5px' }}
           >
-            Autonomous Scheduling System
+            {t('splash.subtitle')}
           </motion.p>
         </div>
 
         {/* Features row */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          style={{ display: 'flex', gap: 20, marginTop: 8 }}
-        >
-          {['⚡ Agentic AI', '📅 Smart Scheduling', '📊 Real-time Insights'].map(f => (
-            <span key={f} style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>{f}</span>
-          ))}
-        </motion.div>
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           transition={{ delay: 0.9 }}
+           style={{ display: 'flex', gap: 20, marginTop: 8 }}
+         >
+           {[
+             '⚡ ' + t('splash.feature_ai'),
+             '📅 ' + t('splash.feature_smart'),
+             '📊 ' + t('splash.feature_insights')
+           ].map(f => (
+             <span key={f} style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>{f}</span>
+           ))}
+         </motion.div>
 
         {/* Progress bar */}
         <motion.div
@@ -102,8 +108,8 @@ export default function SplashScreen() {
               animate={{ width: `${progress}%` }}
             />
           </div>
-          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 10 }}>
-            Initializing AI systems…
+           <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 10 }}>
+            {t('splash.initializing')}
           </p>
         </motion.div>
       </motion.div>

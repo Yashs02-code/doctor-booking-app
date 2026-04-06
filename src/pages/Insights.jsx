@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Clock, DollarSign, XCircle, Brain, Sparkles, ChevronRight, Zap, Globe, Calendar } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 import { hourlyStats, weeklyTrend, specialtyDistribution, aiInsights } from '../data/dummyData';
 import PageWrapper from '../components/PageWrapper';
 
@@ -52,6 +53,7 @@ const CustomTooltip = ({ active, payload, label, darkMode }) => {
 };
 
 export default function Insights() {
+  const { t } = useTranslation();
   const { darkMode, appointments } = useApp();
   const [activeInsight, setActiveInsight] = useState(null);
 
@@ -82,26 +84,26 @@ export default function Insights() {
               <TrendingUp size={22} color="white" />
             </div>
             <div>
-              <h1 style={{ fontSize: 28, fontWeight: 900, color: textPrimary, margin: 0 }}>AI Insights</h1>
-              <p style={{ color: '#64748b', fontSize: 14, margin: 0 }}>Intelligent analytics powered by Medi AI</p>
+              <h1 style={{ fontSize: 28, fontWeight: 900, color: textPrimary, margin: 0 }}>{t('insights.title')}</h1>
+              <p style={{ color: '#64748b', fontSize: 14, margin: 0 }}>{t('insights.subtitle')}</p>
             </div>
           </div>
         </motion.div>
 
         {/* KPI Row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18, marginBottom: 32 }}>
-          <KpiCard icon={<Clock />} label="Peak Booking Hour" value="5 PM" sub="↑ 52 bookings/day avg" color="#f59e0b" delay={0} darkMode={darkMode} />
-          <KpiCard icon={<TrendingUp />} label="Avg Wait Time" value="8 min" sub="↓ 22% vs last month" color="#10b981" delay={0.1} darkMode={darkMode} />
-          <KpiCard icon={<DollarSign />} label="Est. Monthly Revenue" value={`₹${(totalRev + 480000).toLocaleString('en-IN')}`} sub="↑ 18% growth" color="#2563eb" delay={0.2} darkMode={darkMode} />
-          <KpiCard icon={<XCircle />} label="Cancellation Rate" value={`${cancellationRate}%`} sub="↓ 3% improvement" color="#ef4444" delay={0.3} darkMode={darkMode} />
+          <KpiCard icon={<Clock />} label={t('insights.peak_hour')} value="5 PM" sub="↑ 52/day" color="#f59e0b" delay={0} darkMode={darkMode} />
+          <KpiCard icon={<TrendingUp />} label={t('insights.avg_wait')} value={`8 ${t('home.saved').split(' ')[1] || 'min'}`} sub="↓ 22%" color="#10b981" delay={0.1} darkMode={darkMode} />
+          <KpiCard icon={<DollarSign />} label={t('insights.monthly_rev')} value={`₹${(totalRev + 480000).toLocaleString('en-IN')}`} sub="↑ 18%" color="#2563eb" delay={0.2} darkMode={darkMode} />
+          <KpiCard icon={<XCircle />} label={t('insights.cancel_rate')} value={`${cancellationRate}%`} sub="↓ 3%" color="#ef4444" delay={0.3} darkMode={darkMode} />
         </div>
 
         {/* Charts Row 1: Peak Hours + Trend */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 24, marginBottom: 24 }}>
           {/* Peak Hours Bar Chart */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} style={card}>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 6 }}>Peak Booking Hours</h3>
-            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 20 }}>Hourly demand distribution for appointment requests</p>
+            <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 6 }}>{t('insights.peak_hours_title')}</h3>
+            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 20 }}>{t('insights.peak_hours_subtitle')}</p>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={hourlyStats} barCategoryGap="30%">
                 <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} vertical={false} />
@@ -121,8 +123,8 @@ export default function Insights() {
 
           {/* 30-Day Trend Line Chart */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }} style={card}>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 6 }}>30-Day Appointment Trend</h3>
-            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 20 }}>Daily appointments booked over the past month</p>
+            <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 6 }}>{t('insights.trend_title')}</h3>
+            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 20 }}>{t('insights.trend_subtitle')}</p>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={weeklyTrend}>
                 <defs>
@@ -147,8 +149,8 @@ export default function Insights() {
         <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, marginBottom: 24 }}>
           {/* Specialty Distribution Donut */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={card}>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 6 }}>Specialty Distribution</h3>
-            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>Bookings by medical department</p>
+            <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 6 }}>{t('insights.specialty_title')}</h3>
+            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>{t('insights.specialty_subtitle')}</p>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie data={specialtyDistribution} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
@@ -178,8 +180,8 @@ export default function Insights() {
                 <Brain size={18} color="white" />
               </div>
               <div>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, margin: 0 }}>AI-Generated Insights</h3>
-                <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Auto-analyzed by Medi AI engine</p>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, margin: 0 }}>{t('insights.ai_gen_title')}</h3>
+                <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{t('insights.ai_gen_subtitle')}</p>
               </div>
               <div style={{ marginLeft: 'auto', padding: '4px 12px', borderRadius: 20, background: 'linear-gradient(135deg, #7c3aed22, #2563eb22)', border: '1px solid #7c3aed44' }}>
                 <span style={{ fontSize: 10, fontWeight: 800, color: '#7c3aed' }}>✨ LIVE</span>
@@ -228,14 +230,14 @@ export default function Insights() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ ...card, background: darkMode ? 'rgba(124,58,237,0.12)' : 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.25)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
             <Sparkles size={22} color="#7c3aed" />
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, margin: 0 }}>Future Capabilities</h3>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#7c3aed', background: 'rgba(124,58,237,0.15)', padding: '2px 10px', borderRadius: 20 }}>Coming Soon</span>
+            <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, margin: 0 }}>{t('insights.future_title')}</h3>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#7c3aed', background: 'rgba(124,58,237,0.15)', padding: '2px 10px', borderRadius: 20 }}>{t('insights.coming_soon')}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
             {[
-              { icon: <Zap size={22} />, title: 'Voice AI Agent', desc: 'Book appointments hands-free using natural voice commands', color: '#f59e0b' },
-              { icon: <Globe size={22} />, title: 'Multi-Language Support', desc: 'Support for 12+ languages including Hindi, Marathi, Tamil', color: '#10b981' },
-              { icon: <Calendar size={22} />, title: 'Google Calendar Sync', desc: 'Bi-directional sync with Google, Outlook & Apple Calendar', color: '#2563eb' },
+              { icon: <Zap size={22} />, title: t('insights.f1_title'), desc: t('insights.f1_desc'), color: '#f59e0b' },
+              { icon: <Globe size={22} />, title: t('insights.f2_title'), desc: t('insights.f2_desc'), color: '#10b981' },
+              { icon: <Calendar size={22} />, title: t('insights.f3_title'), desc: t('insights.f3_desc'), color: '#2563eb' },
             ].map((f, i) => (
               <div key={i} style={{ display: 'flex', gap: 14, padding: '16px', borderRadius: 16, background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)' }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: `${f.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

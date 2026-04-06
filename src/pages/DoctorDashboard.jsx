@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, Users, Award, Star, ChevronLeft, ChevronRight, Plus, Filter, Check, X, TrendingUp, Brain, Zap } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameDay } from 'date-fns';
 import PageWrapper from '../components/PageWrapper';
 import SkeletonLoader from '../components/SkeletonLoader';
@@ -29,6 +30,7 @@ const CustomTooltip = ({ active, payload, label, darkMode }) => {
 };
 
 export default function DoctorDashboard() {
+  const { t } = useTranslation();
   const { darkMode, appointments, doctors, getDoctorById, loading } = useApp();
   const [currentWeek, setCurrentWeek] = useState(new Date('2026-03-27'));
   const [selectedDay, setSelectedDay] = useState(new Date('2026-03-28'));
@@ -61,28 +63,28 @@ export default function DoctorDashboard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
           <div>
             <h1 style={{ fontSize: 28, fontWeight: 900, color: textPrimary, margin: 0 }}>
-              Medi AI Dashboard
+              {t('doctor_dashboard.title')}
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} className="pulse-slow" />
-              <p style={{ color: '#10b981', fontSize: 13, fontWeight: 700, margin: 0 }}>Live Real-time Sync Active</p>
+              <p style={{ color: '#10b981', fontSize: 13, fontWeight: 700, margin: 0 }}>{t('doctor_dashboard.sync')}</p>
               <div style={{ width: 1, height: 12, background: '#cbd5e1', margin: '0 4px' }} />
-              <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>Welcome back, {doctor?.name}</p>
+              <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>{t('doctor_dashboard.welcome', { name: doctor?.name })}</p>
             </div>
           </div>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
             style={{ padding: '12px 20px', borderRadius: 14, border: 'none', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: 'white', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 10px 20px rgba(37,99,235,0.2)' }}>
-            <Plus size={18} /> Add Entry
+            <Plus size={18} /> {t('doctor_dashboard.add_entry')}
           </motion.button>
         </div>
 
         {/* Stats Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 28 }}>
           {[
-            { label: 'Total Patients', val: '1,284', icon: <Users color="#2563eb" />, trend: '+12% this month', color: '#2563eb' },
-            { label: 'Appointments Today', val: dayAppointments.length, icon: <Calendar color="#10b981" />, trend: '3 pending', color: '#10b981' },
-            { label: 'Consultation Hours', val: '34h', icon: <Clock color="#7c3aed" />, trend: 'Avg 20m / patient', color: '#7c3aed' },
-            { label: 'Rating', val: doctor?.rating || '4.9', icon: <Star color="#fbbf24" fill="#fbbf24" />, trend: '248 reviews', color: '#fbbf24' },
+            { label: t('doctor_dashboard.total_patients'), val: '1,284', icon: <Users color="#2563eb" />, trend: `+12% ${t('doctor_dashboard.this_month')}`, color: '#2563eb' },
+            { label: t('doctor_dashboard.apt_today'), val: dayAppointments.length, icon: <Calendar color="#10b981" />, trend: t('doctor_dashboard.pending_count', { count: 3 }), color: '#10b981' },
+            { label: t('doctor_dashboard.consult_hours'), val: '34h', icon: <Clock color="#7c3aed" />, trend: t('doctor_dashboard.avg_per_patient'), color: '#7c3aed' },
+            { label: t('doctor_dashboard.rating'), val: doctor?.rating || '4.9', icon: <Star color="#fbbf24" fill="#fbbf24" />, trend: t('doctor_dashboard.reviews_count', { count: 248 }), color: '#fbbf24' },
           ].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
               style={{ ...card, boxShadow: `0 8px 24px ${s.color}15` }}>
@@ -105,7 +107,7 @@ export default function DoctorDashboard() {
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} style={card}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
               <TrendingUp size={20} color="#2563eb" />
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, margin: 0 }}>Appointments Per Day</h3>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, margin: 0 }}>{t('doctor_dashboard.apt_per_day')}</h3>
             </div>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={dailyAppointmentData} barCategoryGap="25%">
@@ -114,9 +116,9 @@ export default function DoctorDashboard() {
                 <YAxis tick={{ fill: chartAxis, fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip darkMode={darkMode} />} />
                 <Legend wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
-                <Bar dataKey="confirmed" name="Confirmed" fill="#10b981" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="pending"   name="Pending"   fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="cancelled" name="Cancelled" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="confirmed" name={t('doctor_dashboard.confirmed')} fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="pending"   name={t('doctor_dashboard.pending')}   fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="cancelled" name={t('doctor_dashboard.cancelled')} fill="#ef4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </motion.div>
@@ -171,7 +173,7 @@ export default function DoctorDashboard() {
             {/* Weekly Calendar Strip */}
             <div style={card}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, color: textPrimary, margin: 0 }}>Weekly Schedule</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: textPrimary, margin: 0 }}>{t('doctor_dashboard.weekly_schedule')}</h3>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
                     style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid rgba(148,163,184,0.3)', background: 'none', cursor: 'pointer', color: '#64748b' }}>
@@ -218,7 +220,7 @@ export default function DoctorDashboard() {
             <div style={{ ...card, flex: 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, margin: 0 }}>
-                  Appointments — {format(selectedDay, 'MMM d, yyyy')}
+                  {t('doctor_dashboard.apt_date_header', { date: format(selectedDay, 'MMM d, yyyy') })}
                 </h3>
                 <Filter size={18} color="#94a3b8" style={{ cursor: 'pointer' }} />
               </div>
@@ -250,11 +252,11 @@ export default function DoctorDashboard() {
                         {apt.symptoms && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>🩺 {apt.symptoms}</div>}
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => toast.success('Appointment confirmed!', { icon: '✅' })}
+                        <button onClick={() => toast.success(t('doctor_dashboard.confirmed_msg'), { icon: '✅' })}
                           style={{ width: 34, height: 34, borderRadius: 10, border: 'none', background: '#10b98115', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                           <Check size={16} />
                         </button>
-                        <button onClick={() => toast('Appointment rescheduled', { icon: '🔄' })}
+                        <button onClick={() => toast(t('doctor_dashboard.rescheduled_msg'), { icon: '🔄' })}
                           style={{ width: 34, height: 34, borderRadius: 10, border: 'none', background: '#ef444415', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                           <X size={16} />
                         </button>
@@ -274,7 +276,7 @@ export default function DoctorDashboard() {
           {/* Right: Availability + Progress */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div style={card}>
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 20 }}>Availability</h3>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 20 }}>{t('doctor_dashboard.availability')}</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => (
                   <div key={day} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -284,16 +286,16 @@ export default function DoctorDashboard() {
                 ))}
               </div>
               <button style={{ width: '100%', marginTop: 20, padding: 12, borderRadius: 14, border: '1px solid rgba(37,99,235,0.3)', background: 'none', color: '#2563eb', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
-                Manage Time Slots
+                {t('doctor_dashboard.manage_slots')}
               </button>
             </div>
 
             <div style={card}>
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 20 }}>Today's Progress</h3>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 20 }}>{t('doctor_dashboard.today_progress')}</h3>
               {[
-                { label: 'Capacity Used', pct: 85, color: '#2563eb' },
-                { label: 'Completed', pct: 80, color: '#10b981' },
-                { label: 'Patient Satisfaction', pct: 96, color: '#7c3aed' },
+                { label: t('doctor_dashboard.capacity_used'), pct: 85, color: '#2563eb' },
+                { label: t('doctor_dashboard.completed'), pct: 80, color: '#10b981' },
+                { label: t('doctor_dashboard.satisfaction'), pct: 96, color: '#7c3aed' },
               ].map(({ label, pct, color }) => (
                 <div key={label} style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>

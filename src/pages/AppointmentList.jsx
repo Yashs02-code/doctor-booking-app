@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, ChevronRight, Search, LayoutList, CalendarDays, XCircle, Filter } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay } from 'date-fns';
 import PageWrapper from '../components/PageWrapper';
 import SkeletonLoader from '../components/SkeletonLoader';
@@ -10,6 +11,7 @@ import SkeletonLoader from '../components/SkeletonLoader';
 const STATUS_FILTERS = ['All', 'Confirmed', 'Pending', 'Cancelled'];
 
 function CalendarView({ appointments, getDoctorById, darkMode, navigate }) {
+  const { t } = useTranslation();
   const [calMonth, setCalMonth] = useState(new Date());
   const monthStart = startOfMonth(calMonth);
   const monthEnd = endOfMonth(calMonth);
@@ -34,7 +36,15 @@ function CalendarView({ appointments, getDoctorById, darkMode, navigate }) {
 
       {/* Day headers */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 4 }}>
-        {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => (
+        {[
+          t('appointments_list.calendar.mon'),
+          t('appointments_list.calendar.tue'),
+          t('appointments_list.calendar.wed'),
+          t('appointments_list.calendar.thu'),
+          t('appointments_list.calendar.fri'),
+          t('appointments_list.calendar.sat'),
+          t('appointments_list.calendar.sun')
+        ].map(d => (
           <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#94a3b8', padding: '4px 0' }}>{d}</div>
         ))}
       </div>
@@ -79,6 +89,7 @@ function CalendarView({ appointments, getDoctorById, darkMode, navigate }) {
 }
 
 export default function AppointmentList() {
+  const { t } = useTranslation();
   const { darkMode, getUpcomingAppointments, getPastAppointments, appointments, getDoctorById, loading } = useApp();
   const navigate = useNavigate();
   const [tab, setTab] = useState('upcoming');
@@ -138,14 +149,14 @@ export default function AppointmentList() {
 
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 900, color: textPrimary, margin: 0 }}>Appointments</h1>
-          <p style={{ color: '#64748b', marginTop: 6, fontSize: 15 }}>Manage your bookings and medical history</p>
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: textPrimary, margin: 0 }}>{t('appointments_list.title')}</h1>
+          <p style={{ color: '#64748b', marginTop: 6, fontSize: 15 }}>{t('appointments_list.subtitle')}</p>
         </div>
 
         {/* Tabs + View Toggle */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div style={{ display: 'flex', background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', borderRadius: 14, padding: 4 }}>
-            {[['upcoming', '📅 Upcoming'], ['past', '🕒 History']].map(([val, label]) => (
+            {[['upcoming', `📅 ${t('appointments_list.upcoming')}`], ['past', `🕒 ${t('appointments_list.history')}`]].map(([val, label]) => (
               <motion.button key={val} onClick={() => setTab(val)}
                 style={{
                   padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -187,14 +198,14 @@ export default function AppointmentList() {
           <div style={{ position: 'relative', marginBottom: 14 }}>
             <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             <input className="input-field" style={{ paddingLeft: 42 }}
-              placeholder="Search by doctor, specialty or patient name…"
+              placeholder={t('appointments_list.search_placeholder')}
               value={search} onChange={e => setSearch(e.target.value)} />
           </div>
 
           {/* Status filters */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', alignSelf: 'center' }}>
-              <Filter size={12} style={{ display: 'inline', marginRight: 4 }} />Status:
+              <Filter size={12} style={{ display: 'inline', marginRight: 4 }} />{t('appointments_list.status')}
             </span>
             {STATUS_FILTERS.map(s => (
               <motion.button key={s} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -204,14 +215,14 @@ export default function AppointmentList() {
                   background: statusFilter === s ? '#2563eb' : (darkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)'),
                   color: statusFilter === s ? 'white' : '#64748b',
                 }}>
-                {s}
+                {s === 'All' ? t('appointments_list.all') : s === 'Confirmed' ? t('appointments_list.confirmed') : s === 'Pending' ? t('appointments_list.pending') : t('appointments_list.cancelled')}
               </motion.button>
             ))}
           </div>
 
           {/* Date range */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>📅 Date range:</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>📅 {t('appointments_list.date_range')}</span>
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
               className="input-field"
               style={{ width: 160, padding: '8px 12px', fontSize: 13 }} />
@@ -222,7 +233,7 @@ export default function AppointmentList() {
             {hasFilters && (
               <motion.button whileHover={{ scale: 1.05 }} onClick={clearFilters}
                 style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.1)', color: '#ef4444', fontSize: 12, fontWeight: 700 }}>
-                <XCircle size={14} /> Clear
+                <XCircle size={14} /> {t('appointments_list.clear')}
               </motion.button>
             )}
           </div>
@@ -230,7 +241,7 @@ export default function AppointmentList() {
 
         {/* Results summary */}
         <div style={{ fontSize: 13, color: '#64748b', marginBottom: 16, fontWeight: 500 }}>
-          Showing <span style={{ fontWeight: 800, color: textPrimary }}>{filtered.length}</span> appointment{filtered.length !== 1 ? 's' : ''}
+          {t('appointments_list.showing')} <span style={{ fontWeight: 800, color: textPrimary }}>{filtered.length}</span> {filtered.length === 1 ? t('appointments_list.appointment') : t('appointments_list.appointments')}
         </div>
 
         {/* Content */}
@@ -259,7 +270,11 @@ export default function AppointmentList() {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
                           <h3 style={{ fontWeight: 700, fontSize: 16, color: textPrimary, margin: 0 }}>{doc?.name}</h3>
-                          {getStatusBadge(apt.status)}
+                          <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, textTransform: 'capitalize',
+                            background: darkMode ? (apt.status === 'confirmed' ? '#065f46' : apt.status === 'pending' ? '#78350f' : '#7f1d1d') : (apt.status === 'confirmed' ? '#d1fae5' : apt.status === 'pending' ? '#fef3c7' : '#fee2e2'),
+                            color: darkMode ? (apt.status === 'confirmed' ? '#a7f3d0' : apt.status === 'pending' ? '#fde68a' : '#fca5a5') : (apt.status === 'confirmed' ? '#065f46' : apt.status === 'pending' ? '#92400e' : '#991b1b') }}>
+                            {apt.status === 'confirmed' ? t('appointments_list.confirmed') : apt.status === 'pending' ? t('appointments_list.pending') : t('appointments_list.cancelled')}
+                          </span>
                         </div>
                         <div style={{ fontSize: 13, color: '#64748b', marginBottom: 8 }}>{doc?.specialty} • {doc?.hospital}</div>
                         <div style={{ display: 'flex', gap: 16 }}>
@@ -283,12 +298,12 @@ export default function AppointmentList() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 style={{ textAlign: 'center', padding: '60px 20px', background: darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderRadius: 28 }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
-                <h3 style={{ color: textPrimary, fontWeight: 700, marginBottom: 8 }}>No appointments found</h3>
-                <p style={{ color: '#64748b', fontSize: 14 }}>Try adjusting your filters or book a new appointment!</p>
+                <h3 style={{ color: textPrimary, fontWeight: 700, marginBottom: 8 }}>{t('appointments_list.not_found')}</h3>
+                <p style={{ color: '#64748b', fontSize: 14 }}>{t('appointments_list.not_found_desc')}</p>
                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                   onClick={() => navigate('/chat')}
                   style={{ marginTop: 24, padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#2563eb,#7c3aed)', color: 'white', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 8px 24px rgba(37,99,235,0.3)' }}>
-                  🤖 Book with Medi AI
+                  🤖 {t('appointments_list.book_with_ai')}
                 </motion.button>
               </motion.div>
             )}

@@ -2,10 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 import { languages } from '../data/languages';
 import { Globe, ChevronRight } from 'lucide-react';
 
 export default function LanguageSelect() {
+  const { t } = useTranslation();
   const { setLanguage, darkMode } = useApp();
   const navigate = useNavigate();
 
@@ -40,10 +42,10 @@ export default function LanguageSelect() {
           <Globe size={28} color="white" />
         </div>
         <h1 style={{ fontSize: 28, fontWeight: 800, color: darkMode ? '#e2e8f0' : '#0f172a', margin: 0 }}>
-          Choose Language
+          {t('language_select.title')}
         </h1>
         <p style={{ color: '#64748b', marginTop: 8, fontSize: 15 }}>
-          Select your preferred language to continue
+          {t('language_select.subtitle')}
         </p>
       </motion.div>
 
