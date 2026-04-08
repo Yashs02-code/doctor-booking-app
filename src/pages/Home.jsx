@@ -262,48 +262,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* ─── PROBLEM vs SOLUTION ─── */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-          style={{ marginBottom: 48 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 24 }}>{t('home.problem_solution')}</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-            {/* Problem */}
-            <div style={{ ...card, borderLeft: '3px solid #ef4444' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <span style={{ fontSize: 18 }}>❌</span>
-                <h3 style={{ fontWeight: 800, color: '#ef4444', margin: 0, fontSize: 16 }}>{t('home.traditional')}</h3>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {t('home.problems', { returnObjects: true }).map((p, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <span style={{ fontSize: 16, flexShrink: 0 }}>❌</span>
-                    <span style={{ fontSize: 13, color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.5 }}>{p}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Solution */}
-            <div style={{ ...card, borderLeft: '3px solid #10b981' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <span style={{ fontSize: 18 }}>✅</span>
-                <h3 style={{ fontWeight: 800, color: '#10b981', margin: 0, fontSize: 16 }}>{t('home.medi_ai')}</h3>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {t('home.solutions', { returnObjects: true }).map((s, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <span style={{ fontSize: 16, flexShrink: 0 }}>✅</span>
-                    <span style={{ fontSize: 13, color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.5 }}>{s}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        
-
-       
-
         {/* ─── FEATURED DOCTORS ─── */}
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 16 }}>{t('home.featured_doctors')}</h2>
