@@ -8,7 +8,9 @@ import { format } from 'date-fns';
 import PageWrapper from '../components/PageWrapper';
 import SlotPicker from '../components/SlotPicker';
 import DoctorCard from '../components/DoctorCard';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+
 
 const STEPS = ['name', 'age', 'gender', 'symptoms', 'doctor', 'type', 'date', 'slot', 'confirm'];
 
