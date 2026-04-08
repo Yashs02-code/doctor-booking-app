@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Moon, Sun, Activity, Calendar, MessageSquare, LayoutDashboard, TrendingUp, LogOut, User, Menu, X, Languages } from 'lucide-react';
+import { Moon, Sun, Activity, Calendar, MessageSquare, LayoutDashboard, TrendingUp, LogOut, User, Menu, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 
@@ -11,15 +11,7 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
 
-  const languages = [
-    { code: 'en', label: 'English', flag: '🇺🇸' },
-    { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
-    { code: 'mr', label: 'मराठी', flag: '🚩' },
-  ];
-
-  const currentLang = languages.find(l => l.code === i18n.language) || languages[0];
 
   const navItems = [
     { path: '/home',            icon: <LayoutDashboard size={18} />, label: t('nav.home') },
@@ -100,54 +92,6 @@ export default function Navbar() {
             {demoMode ? '🎭 Demo ON' : '🎭 Demo'}
           </motion.button> */}
 
-          {/* Language Switcher */}
-          <div style={{ position: 'relative' }}>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              onClick={() => setLangOpen(!langOpen)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '8px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                color: darkMode ? '#e2e8f0' : '#64748b',
-                fontSize: 13, fontWeight: 600,
-              }}
-            >
-              <Languages size={18} />
-              <span className="lang-label">{currentLang.flag}</span>
-            </motion.button>
-            
-            {langOpen && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                style={{
-                  position: 'absolute', right: 0, top: 46, zIndex: 200,
-                  background: darkMode ? '#1e293b' : 'white',
-                  border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(148,163,184,0.2)',
-                  borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                  padding: 6, minWidth: 120,
-                }}
-              >
-                {languages.map(lang => (
-                  <button
-                    key={lang.code}
-                    onClick={() => { i18n.changeLanguage(lang.code); setLangOpen(false); }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                      padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                      background: i18n.language === lang.code ? (darkMode ? 'rgba(37,99,235,0.2)' : 'rgba(37,99,235,0.1)') : 'transparent',
-                      color: i18n.language === lang.code ? '#2563eb' : (darkMode ? '#94a3b8' : '#64748b'),
-                      fontSize: 14, fontWeight: i18n.language === lang.code ? 700 : 500,
-                      textAlign: 'left'
-                    }}
-                  >
-                    <span>{lang.flag}</span> {lang.label}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </div>
 
           {/* Dark mode */}
           <motion.button

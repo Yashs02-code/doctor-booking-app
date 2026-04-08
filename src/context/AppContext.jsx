@@ -11,7 +11,15 @@ const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const [darkMode, setDarkMode] = useState(false);
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguageState] = useState(() => localStorage.getItem('i18nextLng') || 'en');
+  
+  const setLanguage = (lng) => {
+    import('../i18n').then((module) => {
+      module.default.changeLanguage(lng);
+    });
+    setLanguageState(lng);
+    localStorage.setItem('i18nextLng', lng);
+  };
   const [demoMode, setDemoMode] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
