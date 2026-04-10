@@ -1,5 +1,27 @@
 // Dummy data for Demo Mode
 
+export const ALLOWED_DOCTOR_EMAILS = [
+  'priya.sharma@example.com',
+  'rahul.mehta@example.com',
+  'ananya.krishnan@example.com',
+  'vikram.nair@example.com',
+  'sneha.patil@example.com',
+  'arun.kumar@example.com',
+  'meera.joshi@example.com',
+  'suresh.iyer@example.com'
+];
+
+export const DOCTOR_EMAIL_MAP = {
+  'priya.sharma@example.com': 'd1',
+  'rahul.mehta@example.com': 'd2',
+  'ananya.krishnan@example.com': 'd3',
+  'vikram.nair@example.com': 'd4',
+  'sneha.patil@example.com': 'd5',
+  'arun.kumar@example.com': 'd6',
+  'meera.joshi@example.com': 'd7',
+  'suresh.iyer@example.com': 'd8'
+};
+
 export const doctors = [
   {
     id: 'd1',

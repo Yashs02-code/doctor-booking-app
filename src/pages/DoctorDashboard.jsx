@@ -31,14 +31,16 @@ const CustomTooltip = ({ active, payload, label, darkMode }) => {
 
 export default function DoctorDashboard() {
   const { t } = useTranslation();
-  const { darkMode, appointments, doctors, getDoctorById, updateAppointmentStatus, loading } = useApp();
+  const { darkMode, appointments, currentUser, getDoctorById, updateAppointmentStatus, loading } = useApp();
   const [currentWeek, setCurrentWeek] = useState(new Date('2026-03-27'));
   const [selectedDay, setSelectedDay] = useState(new Date('2026-03-28'));
   const [activeInsight, setActiveInsight] = useState(null);
 
-  // For demo, we'll act as Dr. Priya Sharma (d1)
-  const doctor = getDoctorById('d1');
-  const doctorAppointments = appointments.filter(a => a.doctorId === 'd1' && a.status !== 'cancelled');
+  // Dynamic doctor ID from logged-in user
+  const doctorId = currentUser?.doctorId || 'd1'; // Default to d1 for demo if not logged in
+  const doctor = getDoctorById(doctorId);
+  const doctorAppointments = appointments.filter(a => a.doctorId === doctorId && a.status !== 'cancelled');
+  const pendingRequests = appointments.filter(a => a.doctorId === doctorId && a.status === 'pending');
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
@@ -154,13 +156,13 @@ export default function DoctorDashboard() {
                   <h3 style={{ fontSize: 18, fontWeight: 800, color: textPrimary, margin: 0 }}>{t('doctor_dashboard.pending_requests') || 'Appointment Requests'}</h3>
                 </div>
                 <div style={{ padding: '4px 12px', borderRadius: 20, background: '#f59e0b20', color: '#f59e0b', fontSize: 12, fontWeight: 700 }}>
-                   {appointments.filter(a => a.doctorId === 'd1' && a.status === 'pending').length} {t('doctor_dashboard.pending') || 'Pending'}
+                   {pendingRequests.length} {t('doctor_dashboard.pending') || 'Pending'}
                 </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {appointments.filter(a => a.doctorId === 'd1' && a.status === 'pending').length > 0 ? (
-                  appointments.filter(a => a.doctorId === 'd1' && a.status === 'pending').map((apt, i) => (
+                {pendingRequests.length > 0 ? (
+                  pendingRequests.map((apt, i) => (
                     <motion.div key={apt.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
                       style={{ 
                         padding: 20, borderRadius: 20, 
@@ -209,7 +211,7 @@ export default function DoctorDashboard() {
             <div style={card}>
                <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 20 }}>{t('doctor_dashboard.recent_activity') || 'Recent Activity'}</h3>
                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                 {appointments.filter(a => a.doctorId === 'd1' && a.status !== 'pending').slice(0, 5).map((apt, i) => (
+                 {doctorAppointments.filter(a => a.status !== 'pending').slice(0, 5).map((apt, i) => (
                    <div key={apt.id} style={{ display: 'flex', gap: 12 }}>
                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: apt.status === 'confirmed' ? '#10b981' : '#ef4444', marginTop: 6, flexShrink: 0 }} />
                      <div>

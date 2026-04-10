@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, getDocs, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { doctors as defaultDoctors, sampleAppointments } from '../data/dummyData';
+import { doctors as defaultDoctors, sampleAppointments, DOCTOR_EMAIL_MAP } from '../data/dummyData';
 import toast from 'react-hot-toast';
 
 const GOOGLE_SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_WEBAPP_URL;
@@ -97,13 +97,17 @@ export function AppProvider({ children }) {
           console.error("Error fetching user profile:", e);
         }
 
+        // Link doctor accounts to their profile ID
+        const doctorId = role === 'doctor' ? DOCTOR_EMAIL_MAP[user.email.toLowerCase()] : null;
+
         setCurrentUser({
           id: user.uid,
           name: user.displayName || 'Demo User',
           email: user.email,
           phone: user.phoneNumber || '+91 98765 43210',
           avatar: (user.displayName || user.email || 'U').charAt(0).toUpperCase(),
-          role: role
+          role: role,
+          doctorId: doctorId
         });
       } else {
         setCurrentUser(null);

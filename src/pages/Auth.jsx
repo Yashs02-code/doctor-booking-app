@@ -14,17 +14,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-
-const ALLOWED_DOCTOR_EMAILS = [
-  'priya.sharma@example.com',
-  'rahul.mehta@example.com',
-  'ananya.krishnan@example.com',
-  'vikram.nair@example.com',
-  'sneha.patil@example.com',
-  'arun.kumar@example.com',
-  'meera.joshi@example.com',
-  'suresh.iyer@example.com'
-];
+import { ALLOWED_DOCTOR_EMAILS } from '../data/dummyData';
 
 export default function Auth() {
   const { t } = useTranslation();
