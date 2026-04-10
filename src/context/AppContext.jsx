@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, getDocs, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { doctors as defaultDoctors, sampleAppointments } from '../data/dummyData';
 import toast from 'react-hot-toast';
@@ -81,14 +81,29 @@ export function AppProvider({ children }) {
   // Auth state listener - this is the primary gate for loading
   useEffect(() => {
     let authResolved = false;
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Fetch user profile from Firestore
+        let role = 'patient'; // Default
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            role = userDoc.data().role || 'patient';
+          } else {
+            // New user or legacy user without profile, default to patient
+            // We set it later if it's a first-time Google login via UI
+          }
+        } catch (e) {
+          console.error("Error fetching user profile:", e);
+        }
+
         setCurrentUser({
           id: user.uid,
           name: user.displayName || 'Demo User',
           email: user.email,
           phone: user.phoneNumber || '+91 98765 43210',
-          avatar: (user.displayName || user.email).charAt(0).toUpperCase(),
+          avatar: (user.displayName || user.email || 'U').charAt(0).toUpperCase(),
+          role: role
         });
       } else {
         setCurrentUser(null);
@@ -173,7 +188,7 @@ export function AppProvider({ children }) {
   const bookAppointment = async (appointmentData) => {
     const newAptData = {
       ...appointmentData,
-      status: 'confirmed',
+      status: 'pending',
       bookedAt: new Date().toISOString(),
       patientId: currentUser?.id || 'guest',
     };
@@ -246,6 +261,31 @@ export function AppProvider({ children }) {
     syncToGoogleSheet({ ...apt, date: newDate, time: newTime });
   };
 
+  const updateAppointmentStatus = async (aptId, newStatus) => {
+    const apt = allAppointments.find(a => a.id === aptId);
+    if (!apt) return;
+
+    if (aptId.startsWith('local_')) {
+      setLocalAppointments(prev => prev.map(a => a.id === aptId ? { ...a, status: newStatus } : a));
+    } else {
+      try {
+        const aptRef = doc(db, 'appointments', aptId);
+        await updateDoc(aptRef, { status: newStatus });
+      } catch (e) {
+        console.error("Error updating status: ", e);
+      }
+    }
+
+    // SYNC UPDATE TO GOOGLE SHEET
+    syncToGoogleSheet({ ...apt, status: newStatus });
+    
+    if (newStatus === 'confirmed') {
+      toast.success("Appointment accepted! ✅");
+    } else if (newStatus === 'rejected') {
+      toast.error("Appointment rejected. ❌");
+    }
+  };
+
   const getDoctorById = (id) => doctors.find(d => d.id === id);
 
   const getUpcomingAppointments = () => {
@@ -276,7 +316,7 @@ export function AppProvider({ children }) {
     currentUser, loading, login, logout,
     doctors,
     appointments: allAppointments,
-    bookAppointment, cancelAppointment, rescheduleAppointment,
+    bookAppointment, cancelAppointment, rescheduleAppointment, updateAppointmentStatus,
     pendingBooking, setPendingBooking,
     getDoctorById,
     getUpcomingAppointments, getPastAppointments,

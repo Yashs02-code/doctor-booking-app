@@ -9,10 +9,22 @@ import {
   updateProfile,
   sendPasswordResetEmail
 } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { auth, googleProvider, db } from '../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+
+const ALLOWED_DOCTOR_EMAILS = [
+  'priya.sharma@example.com',
+  'rahul.mehta@example.com',
+  'ananya.krishnan@example.com',
+  'vikram.nair@example.com',
+  'sneha.patil@example.com',
+  'arun.kumar@example.com',
+  'meera.joshi@example.com',
+  'suresh.iyer@example.com'
+];
 
 export default function Auth() {
   const { t } = useTranslation();
@@ -25,6 +37,9 @@ export default function Auth() {
   const [showForgot, setShowForgot] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+  const [role, setRole] = useState('patient');
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [googleUser, setGoogleUser] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,13 +49,37 @@ export default function Auth() {
         await signInWithEmailAndPassword(auth, form.email, form.password);
         toast.success(t('auth.welcome_back'));
       } else {
+        // Restrict Doctor registration to whitelist
+        if (role === 'doctor' && !ALLOWED_DOCTOR_EMAILS.includes(form.email.toLowerCase())) {
+          setLoading(false);
+          toast.error("This email is not authorized for Doctor access.");
+          return;
+        }
+
         const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
         await updateProfile(userCredential.user, {
           displayName: form.name,
         });
+        
+        // Save user profile to Firestore
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          role: role,
+          createdAt: new Date().toISOString(),
+        });
+
         toast.success(t('auth.account_created'));
       }
-      navigate('/home');
+
+      // Check user role for redirection
+      const user = auth.currentUser;
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const finalRole = userDoc.exists() ? userDoc.data().role : 'patient';
+        navigate(finalRole === 'doctor' ? '/doctor-dashboard' : '/home');
+      }
     } catch (error) {
       console.error(error);
       toast.error(error.message.replace('Firebase:', '').trim() || 'Authentication failed');
@@ -52,12 +91,56 @@ export default function Auth() {
   const handleGoogle = async () => {
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      
+      // Check if user exists in Firestore
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists()) {
+        // New user - show role selection
+        setGoogleUser(user);
+        setShowRoleSelection(true);
+        setLoading(false); // Stop loading to show modal
+        return;
+      }
+      
+      const userData = userDoc.data();
       toast.success(t('auth.google_success'));
-      navigate('/home');
+      navigate(userData.role === 'doctor' ? '/doctor-dashboard' : '/home');
     } catch (error) {
       console.error(error);
       toast.error('Google Sign-In failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRoleSelection = async (selectedRole) => {
+    if (!googleUser) return;
+    
+    // Restrict Doctor registration to whitelist
+    if (selectedRole === 'doctor' && !ALLOWED_DOCTOR_EMAILS.includes(googleUser.email.toLowerCase())) {
+      toast.error("This Google account is not authorized for Doctor access.");
+      setShowRoleSelection(false);
+      setGoogleUser(null);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await setDoc(doc(db, 'users', googleUser.uid), {
+        name: googleUser.displayName,
+        email: googleUser.email,
+        phone: googleUser.phoneNumber || '',
+        role: selectedRole,
+        createdAt: new Date().toISOString(),
+      });
+      toast.success(t('auth.account_created'));
+      setShowRoleSelection(false);
+      navigate(selectedRole === 'doctor' ? '/doctor-dashboard' : '/home');
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to set role");
     } finally {
       setLoading(false);
     }
@@ -120,21 +203,26 @@ export default function Auth() {
           <p style={{ color: '#64748b', fontSize: 14 }}>{t('auth.companion')}</p>
         </div>
 
-        {/* Toggle */}
-        <div style={{ display: 'flex', background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', borderRadius: 14, padding: 4, marginBottom: 28 }}>
-          {['login', 'register'].map(m => (
-            <motion.button key={m} onClick={() => setMode(m)}
-              style={{
-                flex: 1, padding: '10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: mode === m ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'transparent',
-                color: mode === m ? 'white' : '#64748b',
-                fontWeight: 600, fontSize: 14, transition: 'all 0.3s',
-              }}
-            >
-              {m === 'login' ? `🔑 ${t('auth.sign_in')}` : `✨ ${t('auth.register')}`}
-            </motion.button>
-          ))}
-        </div>
+        {/* Role Selection (Registration only) */}
+        {mode === 'register' && (
+          <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+            {['patient', 'doctor'].map(r => (
+              <motion.button key={r} type="button" onClick={() => setRole(r)}
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                style={{
+                  flex: 1, padding: '12px 0', borderRadius: 14, cursor: 'pointer',
+                  border: role === r ? '2px solid #2563eb' : darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                  background: role === r ? (darkMode ? 'rgba(37,99,235,0.15)' : 'rgba(37,99,235,0.05)') : 'transparent',
+                  color: role === r ? '#2563eb' : '#64748b',
+                  fontSize: 14, fontWeight: 700, textTransform: 'capitalize',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6
+                }}>
+                <span style={{ fontSize: 20 }}>{r === 'patient' ? '🏥' : '👨‍⚕️'}</span>
+                {t(`auth.role_${r}`) || r}
+              </motion.button>
+            ))}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <AnimatePresence mode="wait">
@@ -346,6 +434,46 @@ export default function Auth() {
                   {t('auth.cancel')}
                 </button>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Role Selection Modal (First-time Google) ── */}
+      <AnimatePresence>
+        {showRoleSelection && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              style={{ 
+                width: '100%', maxWidth: 440, background: darkMode ? '#1e293b' : 'white', borderRadius: 32, padding: 40, textAlign: 'center',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+              }}
+            >
+              <h2 style={{ fontSize: 24, fontWeight: 900, color: darkMode ? 'white' : '#0f172a', marginBottom: 12 }}>One Last Step! 🚀</h2>
+              <p style={{ color: '#64748b', fontSize: 15, marginBottom: 32 }}>Welcome to MediAI! Please select your role to continue.</p>
+              
+              <div style={{ display: 'flex', gap: 16, marginBottom: 32 }}>
+                {['patient', 'doctor'].map(r => (
+                  <motion.button key={r} onClick={() => handleRoleSelection(r)}
+                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    style={{
+                      flex: 1, padding: '24px 16px', borderRadius: 24, cursor: 'pointer',
+                      border: '2px solid', 
+                      borderColor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                      background: darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                      color: darkMode ? '#e2e8f0' : '#0f172a',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12
+                    }}>
+                    <span style={{ fontSize: 40 }}>{r === 'patient' ? '🏥' : '👨‍⚕️'}</span>
+                    <span style={{ fontWeight: 800, fontSize: 16, textTransform: 'capitalize' }}>{t(`auth.role_${r}`) || r}</span>
+                  </motion.button>
+                ))}
+              </div>
+              <p style={{ color: '#94a3b8', fontSize: 12 }}>You can change this later in your profile settings.</p>
             </motion.div>
           </motion.div>
         )}

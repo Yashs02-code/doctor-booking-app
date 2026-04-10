@@ -60,7 +60,7 @@ export default function Home() {
   const [tipIdx, setTipIdx] = useState(0);
   const [statIdx, setStatIdx] = useState(0);
   const upcoming = getUpcomingAppointments().slice(0, 2);
-  const featuredDoctors = doctors.filter(d => d.available).slice(0, 4);
+  const featuredDoctors = doctors.filter(d => d.available).slice(0, 8);
 
   useEffect(() => {
     const t = setInterval(() => setTipIdx(i => (i + 1) % healthTips.length), 3500);

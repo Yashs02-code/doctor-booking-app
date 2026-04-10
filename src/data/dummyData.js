@@ -139,7 +139,7 @@ export const doctors = [
     fee: 1200,
     avatar: 'AK',
     avatarColor: '#0891b2',
-    available: false,
+    available: true,
     languages: ['English', 'Hindi'],
     about: 'Nationally recognized neurologist specializing in epilepsy, stroke, and neurodegenerative disorders.',
     slots: {

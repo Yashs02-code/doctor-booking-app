@@ -31,10 +31,14 @@ function LazyFallback() {
   );
 }
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, allowedRoles }) {
   const { currentUser, loading } = useApp();
   if (loading) return null;
-  return currentUser ? children : <Navigate to="/auth" />;
+  if (!currentUser) return <Navigate to="/auth" />;
+  if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
+    return <Navigate to="/home" />;
+  }
+  return children;
 }
 
 function AppRoutes() {
@@ -60,13 +64,13 @@ function AppRoutes() {
             <Route path="/language"     element={<LanguageSelect />} />
             <Route path="/auth"         element={<Auth />} />
             <Route path="/home"         element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/chat"         element={<ProtectedRoute><AIChat /></ProtectedRoute>} />
+            <Route path="/chat"         element={<ProtectedRoute allowedRoles={['patient']}><AIChat /></ProtectedRoute>} />
             <Route path="/appointments" element={<ProtectedRoute><AppointmentList /></ProtectedRoute>} />
             <Route path="/appointment/:id" element={<ProtectedRoute><AppointmentDetail /></ProtectedRoute>} />
             <Route path="/confirmation/:id" element={<ProtectedRoute><Confirmation /></ProtectedRoute>} />
-            <Route path="/doctor-dashboard" element={<ProtectedRoute><DoctorDashboard /></ProtectedRoute>} />
-            <Route path="/automation"   element={<ProtectedRoute><AutomationDiagram /></ProtectedRoute>} />
-            <Route path="/insights"     element={<ProtectedRoute><Insights /></ProtectedRoute>} />
+            <Route path="/doctor-dashboard" element={<ProtectedRoute allowedRoles={['doctor']}><DoctorDashboard /></ProtectedRoute>} />
+            <Route path="/automation"   element={<ProtectedRoute allowedRoles={['doctor']}><AutomationDiagram /></ProtectedRoute>} />
+            <Route path="/insights"     element={<ProtectedRoute allowedRoles={['doctor']}><Insights /></ProtectedRoute>} />
             <Route path="/profile"      element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="*"             element={<Navigate to="/" replace />} />
           </Routes>

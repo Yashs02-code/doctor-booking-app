@@ -8,7 +8,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay 
 import PageWrapper from '../components/PageWrapper';
 import SkeletonLoader from '../components/SkeletonLoader';
 
-const STATUS_FILTERS = ['All', 'Confirmed', 'Pending', 'Cancelled'];
+const STATUS_FILTERS = ['All', 'Confirmed', 'Pending', 'Cancelled', 'Rejected'];
 
 function CalendarView({ appointments, getDoctorById, darkMode, navigate }) {
   const { t } = useTranslation();
@@ -68,7 +68,7 @@ function CalendarView({ appointments, getDoctorById, darkMode, navigate }) {
               </div>
               {dayApts.slice(0, 2).map(apt => {
                 const doc = getDoctorById(apt.doctorId);
-                const dotColor = apt.status === 'confirmed' ? '#10b981' : apt.status === 'pending' ? '#f59e0b' : '#ef4444';
+                const dotColor = apt.status === 'confirmed' ? '#10b981' : apt.status === 'pending' ? '#f59e0b' : apt.status === 'rejected' ? '#ef4444' : '#64748b';
                 return (
                   <div key={apt.id} onClick={() => navigate(`/appointment/${apt.id}`)}
                     style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 6, marginBottom: 2, cursor: 'pointer',
@@ -130,6 +130,7 @@ export default function AppointmentList() {
       confirmed: { bg: '#d1fae5', color: '#065f46', darkBg: '#065f46', darkColor: '#a7f3d0' },
       pending:   { bg: '#fef3c7', color: '#92400e', darkBg: '#78350f', darkColor: '#fde68a' },
       cancelled: { bg: '#fee2e2', color: '#991b1b', darkBg: '#7f1d1d', darkColor: '#fca5a5' },
+      rejected:  { bg: '#fee2e2', color: '#991b1b', darkBg: '#7f1d1d', darkColor: '#fca5a5' },
     };
     const s = map[status] || map.pending;
     return (
@@ -215,7 +216,7 @@ export default function AppointmentList() {
                   background: statusFilter === s ? '#2563eb' : (darkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)'),
                   color: statusFilter === s ? 'white' : '#64748b',
                 }}>
-                {s === 'All' ? t('appointments_list.all') : s === 'Confirmed' ? t('appointments_list.confirmed') : s === 'Pending' ? t('appointments_list.pending') : t('appointments_list.cancelled')}
+                {s === 'All' ? t('appointments_list.all') : s === 'Confirmed' ? t('appointments_list.confirmed') : s === 'Pending' ? t('appointments_list.pending') : s === 'Rejected' ? (t('appointments_list.rejected') || 'Rejected') : t('appointments_list.cancelled')}
               </motion.button>
             ))}
           </div>
@@ -271,9 +272,9 @@ export default function AppointmentList() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
                           <h3 style={{ fontWeight: 700, fontSize: 16, color: textPrimary, margin: 0 }}>{doc?.name}</h3>
                           <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, textTransform: 'capitalize',
-                            background: darkMode ? (apt.status === 'confirmed' ? '#065f46' : apt.status === 'pending' ? '#78350f' : '#7f1d1d') : (apt.status === 'confirmed' ? '#d1fae5' : apt.status === 'pending' ? '#fef3c7' : '#fee2e2'),
-                            color: darkMode ? (apt.status === 'confirmed' ? '#a7f3d0' : apt.status === 'pending' ? '#fde68a' : '#fca5a5') : (apt.status === 'confirmed' ? '#065f46' : apt.status === 'pending' ? '#92400e' : '#991b1b') }}>
-                            {apt.status === 'confirmed' ? t('appointments_list.confirmed') : apt.status === 'pending' ? t('appointments_list.pending') : t('appointments_list.cancelled')}
+                            background: darkMode ? (apt.status === 'confirmed' ? '#065f46' : apt.status === 'pending' ? '#78350f' : (apt.status === 'rejected' || apt.status === 'cancelled') ? '#7f1d1d' : '#334155') : (apt.status === 'confirmed' ? '#d1fae5' : apt.status === 'pending' ? '#fef3c7' : (apt.status === 'rejected' || apt.status === 'cancelled') ? '#fee2e2' : '#f1f5f9'),
+                            color: darkMode ? (apt.status === 'confirmed' ? '#a7f3d0' : apt.status === 'pending' ? '#fde68a' : (apt.status === 'rejected' || apt.status === 'cancelled') ? '#fca5a5' : '#94a3b8') : (apt.status === 'confirmed' ? '#065f46' : apt.status === 'pending' ? '#92400e' : (apt.status === 'rejected' || apt.status === 'cancelled') ? '#991b1b' : '#64748b') }}>
+                            {apt.status === 'confirmed' ? t('appointments_list.confirmed') : apt.status === 'pending' ? t('appointments_list.pending') : apt.status === 'rejected' ? (t('appointments_list.rejected') || 'Rejected') : t('appointments_list.cancelled')}
                           </span>
                         </div>
                         <div style={{ fontSize: 13, color: '#64748b', marginBottom: 8 }}>{doc?.specialty} • {doc?.hospital}</div>

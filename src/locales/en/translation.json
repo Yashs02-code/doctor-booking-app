@@ -58,6 +58,8 @@
     "already_have_account": "Already have an account? ",
     "dont_have_account": "Don't have an account? ",
     "click_here": "Click here",
+    "role_patient": "Patient",
+    "role_doctor": "Doctor",
     "forgot_password": "Forgot Password?",
     "reset_password": "Reset Password",
     "send_reset_link": "Send Reset Link",
@@ -175,6 +177,7 @@
     "confirmed": "Confirmed",
     "pending": "Pending",
     "cancelled": "Cancelled",
+    "rejected": "Rejected",
     "search_placeholder": "Search by doctor, specialty or patient name…",
     "status": "Status:",
     "date_range": "Date range:",
@@ -281,6 +284,11 @@
     "confirmed": "Confirmed",
     "pending": "Pending",
     "cancelled": "Cancelled",
+    "pending_requests": "Appointment Requests",
+    "no_pending": "No pending requests at the moment",
+    "accept": "Accept",
+    "reject": "Reject",
+    "recent_activity": "Recent Activity",
     "ai_reco_title": "AI Recommendations",
     "ai_reco_subtitle": "Powered by Medi AI engine",
     "weekly_schedule": "Weekly Schedule",
@@ -310,6 +318,12 @@
     "reschedule_title": "Reschedule Appointment",
     "select_date": "Select New Date",
     "select_time": "Select New Time",
-    "confirm_reschedule": "Confirm Reschedule"
+    "confirm_reschedule": "Confirm Reschedule",
+    "status_pending_title": "Pending Approval",
+    "status_pending_msg": "The doctor is reviewing your request. You'll be notified once confirmed.",
+    "status_accepted_title": "Confirmed!",
+    "status_accepted_msg": "Your appointment has been accepted by the doctor!",
+    "status_rejected_title": "Declined",
+    "status_rejected_msg": "Your appointment has been rejected by the doctor. Please choose another slot."
   }
 }

@@ -58,6 +58,8 @@
     "already_have_account": "तुमचे आधीच खाते आहे का? ",
     "dont_have_account": "तुमचे खाते नाही का? ",
     "click_here": "येथे क्लिक करा",
+    "role_patient": "रुग्ण",
+    "role_doctor": "डॉक्टर",
     "forgot_password": "पासवर्ड विसरलात?",
     "reset_password": "पासवर्ड बदला",
     "send_reset_link": "लिंक पाठवा",
@@ -175,6 +177,7 @@
     "confirmed": "पुष्टी",
     "pending": "प्रलंबित",
     "cancelled": "रद्द",
+    "rejected": "अस्वीकृत",
     "search_placeholder": "डॉक्टर, तज्ञ किंवा रुग्णाच्या नावाने शोधा...",
     "status": "स्थिती:",
     "date_range": "तारीख श्रेणी:",
@@ -281,6 +284,11 @@
     "confirmed": "पुष्टी",
     "pending": "प्रलंबित",
     "cancelled": "रद्द",
+    "pending_requests": "अपॉइंटमेंट विनंत्या",
+    "no_pending": "सध्या कोणत्याही प्रलंबित विनंत्या नाहीत",
+    "accept": "स्वीकार करा",
+    "reject": "नाकारा",
+    "recent_activity": "अलीकडील क्रियाकलाप",
     "ai_reco_title": "एआई शिफारसी",
     "ai_reco_subtitle": "मेडी एआई इंजिनद्वारे समर्थित",
     "weekly_schedule": "साप्ताहिक वेळापत्रक",
@@ -310,6 +318,12 @@
     "reschedule_title": "अपॉइंटमेंट पुनर्सुधारित करा",
     "select_date": "नवीन तारीख निवडा",
     "select_time": "नवीन वेळ निवडा",
-    "confirm_reschedule": "पुनर्सुधारित करण्याची पुष्टी करा"
+    "confirm_reschedule": "पुनर्सुधारित करण्याची पुष्टी करा",
+    "status_pending_title": "स्वीकृती प्रलंबित",
+    "status_pending_msg": "डॉक्टर तुमच्या विनंतीचे पुनरावलोकन करत आहेत. पुष्टी झाल्यावर तुम्हाला सूचित केले जाईल.",
+    "status_accepted_title": "पुष्टी झाली!",
+    "status_accepted_msg": "तुमची अपॉइंटमेंट डॉक्टरांनी स्वीकारली आहे!",
+    "status_rejected_title": "नकार दिला",
+    "status_rejected_msg": "तुमची अपॉइंटमेंट डॉक्टरांनी नाकारली आहे. कृपया दुसरा स्लॉट निवडा।"
   }
 }

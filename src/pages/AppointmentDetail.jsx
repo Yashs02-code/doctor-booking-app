@@ -71,11 +71,44 @@ export default function AppointmentDetail() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
                 <h1 style={{ fontSize: 22, fontWeight: 800, color: darkMode ? '#e2e8f0' : '#0f172a', margin: 0 }}>{doc.name}</h1>
-                <span className={`badge-${apt.status}`} style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700 }}>{t(`appointments_list.${apt.status}`)}</span>
+                <span className={`badge-${apt.status}`} style={{
+                  padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                  background: darkMode ? (apt.status === 'confirmed' ? '#065f46' : apt.status === 'pending' ? '#78350f' : (apt.status === 'rejected' || apt.status === 'cancelled') ? '#7f1d1d' : '#334155') : (apt.status === 'confirmed' ? '#d1fae5' : apt.status === 'pending' ? '#fef3c7' : (apt.status === 'rejected' || apt.status === 'cancelled') ? '#fee2e2' : '#f1f5f9'),
+                  color: darkMode ? (apt.status === 'confirmed' ? '#a7f3d0' : apt.status === 'pending' ? '#fde68a' : (apt.status === 'rejected' || apt.status === 'cancelled') ? '#fca5a5' : '#94a3b8') : (apt.status === 'confirmed' ? '#065f46' : apt.status === 'pending' ? '#92400e' : (apt.status === 'rejected' || apt.status === 'cancelled') ? '#991b1b' : '#64748b')
+                }}>
+                  {apt.status === 'confirmed' ? t('appointments_list.confirmed') : apt.status === 'pending' ? t('appointments_list.pending') : apt.status === 'rejected' ? (t('appointments_list.rejected') || 'Rejected') : t('appointments_list.cancelled')}
+                </span>
               </div>
               <div style={{ fontSize: 15, color: '#64748b' }}>{doc.specialty} • {doc.hospital}</div>
             </div>
           </div>
+
+          {/* Status Banner */}
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            style={{ 
+              marginBottom: 32, padding: '16px 20px', borderRadius: 16, 
+              display: 'flex', alignItems: 'center', gap: 14,
+              background: apt.status === 'confirmed' ? (darkMode ? 'rgba(16,185,129,0.1)' : '#f0fdf4') :
+                         apt.status === 'rejected' ? (darkMode ? 'rgba(239,68,68,0.1)' : '#fef2f2') :
+                         (darkMode ? 'rgba(245,158,11,0.1)' : '#fffbeb'),
+              border: `1px solid ${apt.status === 'confirmed' ? '#10b98144' : apt.status === 'rejected' ? '#ef444444' : '#f59e0b44'}`,
+            }}>
+            {apt.status === 'confirmed' ? <CheckCircle size={20} color="#10b981" /> : 
+             apt.status === 'rejected' ? <XCircle size={20} color="#ef4444" /> : 
+             <AlertCircle size={20} color="#f59e0b" />}
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 14, color: apt.status === 'confirmed' ? '#10b981' : apt.status === 'rejected' ? '#ef4444' : '#d97706' }}>
+                {apt.status === 'confirmed' ? (t('appointment_detail.status_accepted_title') || 'Confirmed!') : 
+                 apt.status === 'rejected' ? (t('appointment_detail.status_rejected_title') || 'Declined') : 
+                 (t('appointment_detail.status_pending_title') || 'Pending Approval')}
+              </div>
+              <div style={{ fontSize: 13, color: darkMode ? '#94a3b8' : '#64748b', marginTop: 2 }}>
+                {apt.status === 'confirmed' ? (t('appointment_detail.status_accepted_msg') || 'Your appointment has been accepted by the doctor!') : 
+                 apt.status === 'rejected' ? (t('appointment_detail.status_rejected_msg') || 'Your appointment has been rejected by the doctor. Please choose another slot.') : 
+                 (t('appointment_detail.status_pending_msg') || 'The doctor is reviewing your request. You\'ll be notified once confirmed.')}
+              </div>
+            </div>
+          </motion.div>
 
           {/* Details */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>

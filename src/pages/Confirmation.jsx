@@ -249,17 +249,7 @@ export default function Confirmation() {
               <Share2 size={20} />
             </motion.button>
           </div>
-          <button
-            onClick={() => navigate('/automation')}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: '#2563eb', fontWeight: 600, fontSize: 14,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              marginTop: 10,
-            }}
-          >
-            {t('confirmation.view_n8n')} <ArrowRight size={14} />
-          </button>
+          
         </motion.div>
       </div>
     </PageWrapper>

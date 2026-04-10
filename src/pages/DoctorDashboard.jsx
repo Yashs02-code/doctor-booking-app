@@ -31,7 +31,7 @@ const CustomTooltip = ({ active, payload, label, darkMode }) => {
 
 export default function DoctorDashboard() {
   const { t } = useTranslation();
-  const { darkMode, appointments, doctors, getDoctorById, loading } = useApp();
+  const { darkMode, appointments, doctors, getDoctorById, updateAppointmentStatus, loading } = useApp();
   const [currentWeek, setCurrentWeek] = useState(new Date('2026-03-27'));
   const [selectedDay, setSelectedDay] = useState(new Date('2026-03-28'));
   const [activeInsight, setActiveInsight] = useState(null);
@@ -123,157 +123,7 @@ export default function DoctorDashboard() {
             </ResponsiveContainer>
           </motion.div>
 
-          {/* AI Recommendations */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }} style={card}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg, #7c3aed, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Brain size={18} color="white" />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: textPrimary, margin: 0 }}>AI Recommendations</h3>
-                <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Powered by Medi AI engine</p>
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {aiInsights.slice(0, 4).map((insight, i) => (
-                <motion.div key={insight.id}
-                  initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.08 }}
-                  onClick={() => setActiveInsight(activeInsight === insight.id ? null : insight.id)}
-                  whileHover={{ x: 3 }}
-                  style={{
-                    padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
-                    background: darkMode ? 'rgba(255,255,255,0.04)' : `${insight.color}06`,
-                    border: `1px solid ${insight.color}25`,
-                    borderLeft: `3px solid ${insight.color}`,
-                  }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 18 }}>{insight.icon}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: textPrimary }}>{insight.title}</div>
-                      {activeInsight === insight.id && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                          style={{ fontSize: 11, color: '#64748b', marginTop: 4, lineHeight: 1.5 }}>
-                          {insight.detail}
-                        </motion.div>
-                      )}
-                    </div>
-                    <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 6,
-                      background: `${insight.color}20`, color: insight.color }}>{insight.impact}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Main Content Area */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
-          {/* Left: Calendar + Appointments */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {/* Weekly Calendar Strip */}
-            <div style={card}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, color: textPrimary, margin: 0 }}>{t('doctor_dashboard.weekly_schedule')}</h3>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
-                    style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid rgba(148,163,184,0.3)', background: 'none', cursor: 'pointer', color: '#64748b' }}>
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
-                    style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid rgba(148,163,184,0.3)', background: 'none', cursor: 'pointer', color: '#64748b' }}>
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
-                {weekDays.map(day => {
-                  const isSelected = isSameDay(day, selectedDay);
-                  const isToday = isSameDay(day, new Date('2026-03-27'));
-                  const dayCount = doctorAppointments.filter(a => isSameDay(new Date(a.date), day)).length;
-                  return (
-                    <motion.button key={day.toISOString()} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                      onClick={() => setSelectedDay(day)}
-                      style={{
-                        padding: '14px 6px', borderRadius: 16, border: 'none', cursor: 'pointer',
-                        background: isSelected ? 'linear-gradient(135deg, #2563eb, #7c3aed)' : (darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
-                        color: isSelected ? 'white' : (darkMode ? '#94a3b8' : '#64748b'),
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                        boxShadow: isSelected ? '0 10px 20px rgba(37,99,235,0.3)' : 'none',
-                        transition: 'all 0.3s',
-                        borderTop: isToday && !isSelected ? '3px solid #10b981' : 'none',
-                      }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>{format(day, 'EEE')}</span>
-                      <span style={{ fontSize: 18, fontWeight: 800 }}>{format(day, 'd')}</span>
-                      {dayCount > 0 && (
-                        <div style={{ width: 18, height: 18, borderRadius: '50%', background: isSelected ? 'rgba(255,255,255,0.3)' : '#2563eb', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                          {dayCount}
-                        </div>
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Day Appointments */}
-            <div style={{ ...card, flex: 1 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, margin: 0 }}>
-                  {t('doctor_dashboard.apt_date_header', { date: format(selectedDay, 'MMM d, yyyy') })}
-                </h3>
-                <Filter size={18} color="#94a3b8" style={{ cursor: 'pointer' }} />
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {loading ? (
-                  <SkeletonLoader count={3} />
-                ) : dayAppointments.length > 0 ? (
-                  dayAppointments.sort((a, b) => a.time.localeCompare(b.time)).map((apt, i) => (
-                    <motion.div key={apt.id}
-                      initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                      style={{
-                        padding: '16px 20px', borderRadius: 16,
-                        background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
-                        display: 'flex', alignItems: 'center', gap: 16,
-                        borderLeft: `4px solid ${apt.status === 'confirmed' ? '#10b981' : '#f59e0b'}`,
-                      }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: '#2563eb', minWidth: 60 }}>{apt.time}</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: 15, color: textPrimary }}>{apt.patientName}</div>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-                          <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6,
-                            background: apt.appointmentType === 'Check-up' ? '#10b98120' : '#7c3aed20',
-                            color: apt.appointmentType === 'Check-up' ? '#10b981' : '#7c3aed', textTransform: 'uppercase' }}>
-                            {apt.appointmentType || 'Consultation'}
-                          </span>
-                          <div style={{ fontSize: 12, color: '#64748b' }}>{apt.age}y • {apt.gender}</div>
-                        </div>
-                        {apt.symptoms && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>🩺 {apt.symptoms}</div>}
-                      </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => toast.success(t('doctor_dashboard.confirmed_msg'), { icon: '✅' })}
-                          style={{ width: 34, height: 34, borderRadius: 10, border: 'none', background: '#10b98115', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                          <Check size={16} />
-                        </button>
-                        <button onClick={() => toast(t('doctor_dashboard.rescheduled_msg'), { icon: '🔄' })}
-                          style={{ width: 34, height: 34, borderRadius: 10, border: 'none', background: '#ef444415', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                    <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
-                    <div style={{ color: '#94a3b8', fontSize: 14 }}>No appointments scheduled for this day</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Availability + Progress */}
+        {/* Right: Availability + Progress */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div style={card}>
               <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 20 }}>{t('doctor_dashboard.availability')}</h3>
@@ -290,24 +140,87 @@ export default function DoctorDashboard() {
               </button>
             </div>
 
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 24 }}>
+          {/* Left: Appointment Requests */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div style={card}>
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 20 }}>{t('doctor_dashboard.today_progress')}</h3>
-              {[
-                { label: t('doctor_dashboard.capacity_used'), pct: 85, color: '#2563eb' },
-                { label: t('doctor_dashboard.completed'), pct: 80, color: '#10b981' },
-                { label: t('doctor_dashboard.satisfaction'), pct: 96, color: '#7c3aed' },
-              ].map(({ label, pct, color }) => (
-                <div key={label} style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                    <span style={{ color: '#64748b' }}>{label}</span>
-                    <span style={{ fontWeight: 700, color: textPrimary }}>{pct}%</span>
-                  </div>
-                  <div style={{ height: 6, background: darkMode ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: 3 }}>
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1, delay: 0.5 }}
-                      style={{ height: '100%', background: color, borderRadius: 3 }} />
-                  </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Users size={20} color="#2563eb" />
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: textPrimary, margin: 0 }}>{t('doctor_dashboard.pending_requests') || 'Appointment Requests'}</h3>
                 </div>
-              ))}
+                <div style={{ padding: '4px 12px', borderRadius: 20, background: '#f59e0b20', color: '#f59e0b', fontSize: 12, fontWeight: 700 }}>
+                   {appointments.filter(a => a.doctorId === 'd1' && a.status === 'pending').length} {t('doctor_dashboard.pending') || 'Pending'}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {appointments.filter(a => a.doctorId === 'd1' && a.status === 'pending').length > 0 ? (
+                  appointments.filter(a => a.doctorId === 'd1' && a.status === 'pending').map((apt, i) => (
+                    <motion.div key={apt.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+                      style={{ 
+                        padding: 20, borderRadius: 20, 
+                        background: darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                        border: `1px solid ${darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                      }}>
+                      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                         <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, #7c3aed, #2563eb)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18 }}>
+                           {apt.patientName?.charAt(0) || 'P'}
+                         </div>
+                         <div>
+                           <div style={{ fontWeight: 700, fontSize: 16, color: textPrimary }}>{apt.patientName}</div>
+                           <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>
+                             <Calendar size={12} style={{ display: 'inline', marginRight: 4 }} /> {apt.date} • <Clock size={12} style={{ display: 'inline', marginRight: 4 }} /> {apt.time}
+                           </div>
+                           <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>{apt.appointmentType} • {apt.symptoms}</div>
+                         </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                          onClick={() => updateAppointmentStatus(apt.id, 'rejected')}
+                          style={{ padding: '8px 16px', borderRadius: 12, border: '1.5px solid #ef4444', background: 'transparent', color: '#ef4444', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                          <X size={16} />
+                        </motion.button>
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                          onClick={() => updateAppointmentStatus(apt.id, 'confirmed')}
+                          style={{ padding: '8px 16px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}>
+                          <Check size={16} /> {t('doctor_dashboard.accept') || 'Accept'}
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
+                    <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
+                    <p style={{ margin: 0, fontWeight: 500 }}>{t('doctor_dashboard.no_pending') || 'No pending requests at the moment'}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Right: Activity Log */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div style={card}>
+               <h3 style={{ fontSize: 17, fontWeight: 800, color: textPrimary, marginBottom: 20 }}>{t('doctor_dashboard.recent_activity') || 'Recent Activity'}</h3>
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                 {appointments.filter(a => a.doctorId === 'd1' && a.status !== 'pending').slice(0, 5).map((apt, i) => (
+                   <div key={apt.id} style={{ display: 'flex', gap: 12 }}>
+                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: apt.status === 'confirmed' ? '#10b981' : '#ef4444', marginTop: 6, flexShrink: 0 }} />
+                     <div>
+                       <div style={{ fontSize: 13, fontWeight: 700, color: textPrimary }}>{apt.patientName}</div>
+                       <div style={{ fontSize: 11, color: '#64748b' }}>
+                         {apt.status === 'confirmed' ? 'Accepted' : 'Rejected'} • {apt.date}
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+               </div>
             </div>
           </div>
         </div>
