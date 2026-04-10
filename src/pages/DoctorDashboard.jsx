@@ -134,7 +134,7 @@ export default function DoctorDashboard() {
             { label: t('doctor_dashboard.total_patients'), val: '1,284', icon: <Users color="#2563eb" />, trend: `+12% ${t('doctor_dashboard.this_month')}`, color: '#2563eb' },
             { label: t('doctor_dashboard.apt_today'), val: dayAppointments.length, icon: <Calendar color="#10b981" />, trend: t('doctor_dashboard.pending_count', { count: pendingRequests.length }), color: '#10b981' },
             { label: t('doctor_dashboard.consult_hours'), val: '34h', icon: <Clock color="#7c3aed" />, trend: t('doctor_dashboard.avg_per_patient'), color: '#7c3aed' },
-            { label: t('doctor_dashboard.rating'), val: doctor?.rating || '4.9', icon: <Star color="#fbbf24" fill="#fbbf24" />, trend: t('doctor_dashboard.reviews_count', { count: 248 }), color: '#fbbf24' },
+            { label: t('doctor_dashboard.rating'), val: doctorProfile?.rating || '4.9', icon: <Star color="#fbbf24" fill="#fbbf24" />, trend: t('doctor_dashboard.reviews_count', { count: 248 }), color: '#fbbf24' },
           ].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
               style={{ ...card, boxShadow: `0 8px 24px ${s.color}15` }}>
