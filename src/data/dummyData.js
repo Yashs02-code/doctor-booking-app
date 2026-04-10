@@ -26,6 +26,7 @@ export const doctors = [
   {
     id: 'd1',
     name: 'Dr. Priya Sharma',
+    email: 'priya.sharma@example.com',
     specialty: 'Cardiologist',
     experience: '12 years',
     rating: 4.9,
@@ -52,6 +53,7 @@ export const doctors = [
   {
     id: 'd2',
     name: 'Dr. Rahul Mehta',
+    email: 'rahul.mehta@example.com',
     specialty: 'General Physician',
     experience: '8 years',
     rating: 4.7,
@@ -78,6 +80,7 @@ export const doctors = [
   {
     id: 'd3',
     name: 'Dr. Ananya Krishnan',
+    email: 'ananya.krishnan@example.com',
     specialty: 'Dermatologist',
     experience: '10 years',
     rating: 4.8,
@@ -102,6 +105,7 @@ export const doctors = [
   {
     id: 'd4',
     name: 'Dr. Vikram Nair',
+    email: 'vikram.nair@example.com',
     specialty: 'Orthopedist',
     experience: '15 years',
     rating: 4.9,
@@ -128,6 +132,7 @@ export const doctors = [
   {
     id: 'd5',
     name: 'Dr. Sneha Patil',
+    email: 'sneha.patil@example.com',
     specialty: 'Pediatrician',
     experience: '9 years',
     rating: 4.8,
@@ -152,6 +157,7 @@ export const doctors = [
   {
     id: 'd6',
     name: 'Dr. Arun Kumar',
+    email: 'arun.kumar@example.com',
     specialty: 'Neurologist',
     experience: '18 years',
     rating: 4.9,
@@ -174,6 +180,7 @@ export const doctors = [
   {
     id: 'd7',
     name: 'Dr. Meera Joshi',
+    email: 'meera.joshi@example.com',
     specialty: 'Gynecologist',
     experience: '11 years',
     rating: 4.7,
@@ -198,6 +205,7 @@ export const doctors = [
   {
     id: 'd8',
     name: 'Dr. Suresh Iyer',
+    email: 'suresh.iyer@example.com',
     specialty: 'ENT Specialist',
     experience: '7 years',
     rating: 4.6,

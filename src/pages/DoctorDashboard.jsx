@@ -62,12 +62,17 @@ export default function DoctorDashboard() {
   const [selectedDay, setSelectedDay] = useState(new Date('2026-03-28'));
   const [activeInsight, setActiveInsight] = useState(null);
 
-  // Dynamic doctor ID from logged-in user
-  const doctorId = currentUser?.doctorId || 'd1'; // Default to d1 for demo if not logged in
-  const doctor = getDoctorById(doctorId);
+  // NEW METHOD: Link appointments by email for bulletproof sync
+  const doctorEmail = currentUser?.email?.toLowerCase() || '';
+  const doctorProfile = getDoctorById(currentUser?.doctorId || 'd1');
   const totalCount = appointments.length;
-  const doctorAppointments = appointments.filter(a => a.doctorId === doctorId && a.status !== 'cancelled');
-  const pendingRequests = appointments.filter(a => a.doctorId === doctorId && a.status === 'pending');
+  
+  const doctorAppointments = appointments.filter(a => 
+    (a.doctorEmail === doctorEmail || a.doctorId === currentUser?.doctorId) && 
+    a.status !== 'cancelled'
+  );
+  
+  const pendingRequests = doctorAppointments.filter(a => a.status === 'pending');
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
@@ -114,7 +119,7 @@ export default function DoctorDashboard() {
                 {syncStatus === 'synced' ? t('doctor_dashboard.sync') : (syncStatus === 'connecting' ? 'Connecting...' : 'Sync Error')}
               </p>
               <div style={{ width: 1, height: 12, background: '#cbd5e1', margin: '0 4px' }} />
-              <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>{t('doctor_dashboard.welcome', { name: doctor?.name })}</p>
+              <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>{t('doctor_dashboard.welcome', { name: doctorProfile?.name })}</p>
             </div>
           </div>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}

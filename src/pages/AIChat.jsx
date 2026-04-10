@@ -229,6 +229,7 @@ export default function AIChat() {
     
     const aptPromise = bookAppointment({
       doctorId: ctx.doctor.id,
+      doctorEmail: ctx.doctor.email,
       patientName: ctx.name,
       age: parseInt(ctx.age),
       gender: ctx.gender,

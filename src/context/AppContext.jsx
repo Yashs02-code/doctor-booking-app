@@ -115,12 +115,11 @@ export function AppProvider({ children }) {
           console.error("Error fetching user profile:", e);
         }
 
-        // Link doctor accounts to their profile ID
+        // Check if user is an authorized doctor by email
         const normalizedEmail = (user.email || '').trim().toLowerCase();
-        let doctorId = DOCTOR_EMAIL_MAP[normalizedEmail] || null;
+        const doctorProfile = doctors.find(d => d.email === normalizedEmail);
         
-        // If they have an email in the map, they are definitely a doctor
-        if (doctorId) {
+        if (doctorProfile) {
           role = 'doctor';
         }
 
@@ -131,7 +130,7 @@ export function AppProvider({ children }) {
           phone: user.phoneNumber || '+91 98765 43210',
           avatar: (user.displayName || user.email || 'U').charAt(0).toUpperCase(),
           role: role,
-          doctorId: doctorId
+          doctorId: doctorProfile?.id || null 
         });
       } else {
         setCurrentUser(null);
@@ -214,8 +213,16 @@ export function AppProvider({ children }) {
   };
 
   const bookAppointment = async (appointmentData) => {
+    // Find doctor email if not provided
+    let doctorEmail = appointmentData.doctorEmail;
+    if (!doctorEmail && appointmentData.doctorId) {
+      const doc = doctors.find(d => d.id === appointmentData.doctorId);
+      doctorEmail = doc?.email;
+    }
+
     const newAptData = {
       ...appointmentData,
+      doctorEmail,
       status: 'pending',
       bookedAt: new Date().toISOString(),
       patientId: currentUser?.id || 'guest',
