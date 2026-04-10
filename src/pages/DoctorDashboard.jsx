@@ -29,6 +29,24 @@ const CustomTooltip = ({ active, payload, label, darkMode }) => {
   );
 };
 
+import toast from 'react-hot-toast';
+
+const DebugBanner = ({ user, darkMode }) => (
+  <div style={{
+    background: darkMode ? 'rgba(37,99,235,0.1)' : 'rgba(37,99,235,0.05)',
+    border: '1px dashed #2563eb',
+    borderRadius: 16, padding: '12px 20px', marginBottom: 24,
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+  }}>
+    <div style={{ display: 'flex', gap: 20 }}>
+      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Email:</span> <strong style={{ color: '#2563eb' }}>{user?.email}</strong></div>
+      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Role:</span> <strong style={{ color: '#10b981' }}>{user?.role}</strong></div>
+      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Doctor ID:</span> <strong style={{ color: '#7c3aed' }}>{user?.doctorId || 'None (Legacy/Patient)'}</strong></div>
+    </div>
+    <div style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', textTransform: 'uppercase' }}>🔧 Diagnostic Mode</div>
+  </div>
+);
+
 export default function DoctorDashboard() {
   const { t } = useTranslation();
   const { darkMode, appointments, currentUser, getDoctorById, updateAppointmentStatus, loading } = useApp();
@@ -60,6 +78,9 @@ export default function DoctorDashboard() {
   return (
     <PageWrapper>
       <div style={{ padding: '32px 24px', maxWidth: 1300, margin: '0 auto' }}>
+        
+        {/* Debug Banner - Remove before production */}
+        <DebugBanner user={currentUser} darkMode={darkMode} />
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
@@ -82,9 +103,9 @@ export default function DoctorDashboard() {
 
         {/* Stats Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 28 }}>
-          {[
+           {[
             { label: t('doctor_dashboard.total_patients'), val: '1,284', icon: <Users color="#2563eb" />, trend: `+12% ${t('doctor_dashboard.this_month')}`, color: '#2563eb' },
-            { label: t('doctor_dashboard.apt_today'), val: dayAppointments.length, icon: <Calendar color="#10b981" />, trend: t('doctor_dashboard.pending_count', { count: 3 }), color: '#10b981' },
+            { label: t('doctor_dashboard.apt_today'), val: dayAppointments.length, icon: <Calendar color="#10b981" />, trend: t('doctor_dashboard.pending_count', { count: pendingRequests.length }), color: '#10b981' },
             { label: t('doctor_dashboard.consult_hours'), val: '34h', icon: <Clock color="#7c3aed" />, trend: t('doctor_dashboard.avg_per_patient'), color: '#7c3aed' },
             { label: t('doctor_dashboard.rating'), val: doctor?.rating || '4.9', icon: <Star color="#fbbf24" fill="#fbbf24" />, trend: t('doctor_dashboard.reviews_count', { count: 248 }), color: '#fbbf24' },
           ].map((s, i) => (

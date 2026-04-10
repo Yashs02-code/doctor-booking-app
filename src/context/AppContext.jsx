@@ -98,7 +98,8 @@ export function AppProvider({ children }) {
         }
 
         // Link doctor accounts to their profile ID
-        const doctorId = role === 'doctor' ? DOCTOR_EMAIL_MAP[user.email.toLowerCase()] : null;
+        const normalizedEmail = (user.email || '').trim().toLowerCase();
+        const doctorId = role === 'doctor' ? DOCTOR_EMAIL_MAP[normalizedEmail] : null;
 
         setCurrentUser({
           id: user.uid,
