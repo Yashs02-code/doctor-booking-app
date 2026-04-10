@@ -29,8 +29,6 @@ const CustomTooltip = ({ active, payload, label, darkMode }) => {
   );
 };
 
-import toast from 'react-hot-toast';
-
 const DebugBanner = ({ user, darkMode }) => (
   <div style={{
     background: darkMode ? 'rgba(37,99,235,0.1)' : 'rgba(37,99,235,0.05)',
