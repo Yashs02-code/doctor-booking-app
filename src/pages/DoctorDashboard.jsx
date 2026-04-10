@@ -40,6 +40,7 @@ const DebugBanner = ({ user, darkMode }) => (
       <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Email:</span> <strong style={{ color: '#2563eb' }}>{user?.email}</strong></div>
       <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Role:</span> <strong style={{ color: '#10b981' }}>{user?.role}</strong></div>
       <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Doctor ID:</span> <strong style={{ color: '#7c3aed' }}>{user?.doctorId || 'None (Legacy/Patient)'}</strong></div>
+      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Total Data:</span> <strong style={{ color: '#f59e0b' }}>{totalCount} total appointments</strong></div>
     </div>
     <div style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', textTransform: 'uppercase' }}>🔧 Diagnostic Mode</div>
   </div>
@@ -55,6 +56,7 @@ export default function DoctorDashboard() {
   // Dynamic doctor ID from logged-in user
   const doctorId = currentUser?.doctorId || 'd1'; // Default to d1 for demo if not logged in
   const doctor = getDoctorById(doctorId);
+  const totalCount = appointments.length;
   const doctorAppointments = appointments.filter(a => a.doctorId === doctorId && a.status !== 'cancelled');
   const pendingRequests = appointments.filter(a => a.doctorId === doctorId && a.status === 'pending');
 
@@ -77,8 +79,8 @@ export default function DoctorDashboard() {
     <PageWrapper>
       <div style={{ padding: '32px 24px', maxWidth: 1300, margin: '0 auto' }}>
         
-        {/* Debug Banner - Remove before production */}
-        <DebugBanner user={currentUser} darkMode={darkMode} />
+        {/* Debug Banner - Commented out for production feel. Uncomment for diagnostics if needed. */}
+        {/* <DebugBanner user={currentUser} totalCount={totalCount} darkMode={darkMode} /> */}
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>

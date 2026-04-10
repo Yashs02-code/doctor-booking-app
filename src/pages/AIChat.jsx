@@ -163,7 +163,18 @@ export default function AIChat() {
       setStep('doctor');
       addAI(t('aichat.search_docs', { name: candidates[0].name }), 1000);
     } else if (step === 'doctor') {
-      const doc = doctors.find(d => d.name === val || d.id === val);
+      const normalizedInput = val.toLowerCase().replace('dr.', '').trim();
+      const doc = doctors.find(d => 
+        d.id.toLowerCase() === normalizedInput || 
+        d.name.toLowerCase().replace('dr.', '').trim() === normalizedInput ||
+        d.name.toLowerCase().trim() === val.toLowerCase().trim()
+      );
+      
+      if (!doc) {
+        addAI(t('aichat.invalid_doctor') || "I couldn't find that doctor. Please pick one from the list above.");
+        return;
+      }
+
       const newCtx = { ...ctx, doctor: doc };
       setCtx(newCtx);
       setSuggestedDoctor(doc);
@@ -214,6 +225,8 @@ export default function AIChat() {
   }
 
   async function processBooking() {
+    console.log("🚀 Initiating booking for Doctor ID:", ctx.doctor.id, "Name:", ctx.doctor.name);
+    
     const aptPromise = bookAppointment({
       doctorId: ctx.doctor.id,
       patientName: ctx.name,

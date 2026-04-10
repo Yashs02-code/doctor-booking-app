@@ -48,6 +48,15 @@ export function AppProvider({ children }) {
       const q = query(collection(db, 'appointments'), orderBy('bookedAt', 'desc'));
       unsubscribe = onSnapshot(q, (snapshot) => {
         const apts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log(`📊 Firestore Sync: ${apts.length} appointments loaded.`);
+        
+        // Debug ID breakdown
+        const idCounts = apts.reduce((acc, a) => {
+          acc[a.doctorId] = (acc[a.doctorId] || 0) + 1;
+          return acc;
+        }, {});
+        console.log("📍 Appointment ID Breakdown:", idCounts);
+        
         setAppointments(apts);
       }, (error) => {
         console.error("Firestore snapshot error:", error);
