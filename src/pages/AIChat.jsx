@@ -242,6 +242,12 @@ export default function AIChat() {
     setDone(true);
     addAI(t('aichat.confirmed', { doctor: ctx.doctor.name, date: ctx.date, time: ctx.time }), 600);
     
+    // Detailed diagnostic toast
+    toast.success(`Booking sent to ${ctx.doctor.name} (ID: ${ctx.doctor.id})`, {
+      icon: '📡',
+      duration: 5000
+    });
+    
     const apt = await aptPromise;
     if (apt) {
       setTimeout(() => navigate(`/confirmation/${apt.id}`), 2500);

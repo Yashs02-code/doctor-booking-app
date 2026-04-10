@@ -30,6 +30,16 @@ export function AppProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
   const [pendingBooking, setPendingBooking] = useState(null);
+  const [syncStatus, setSyncStatus] = useState('connecting'); // connecting, synced, error, limited
+  const [lastSync, setLastSync] = useState(null);
+  const [syncError, setSyncError] = useState(null);
+  const [syncTrigger, setSyncTrigger] = useState(0);
+
+  const refreshSync = () => {
+    console.log("🔄 [Sync] Manual refresh triggered...");
+    setSyncTrigger(prev => prev + 1);
+    toast.loading("Refetching data...", { id: 'sync-toast' });
+  };
 
   // Persist local appointments
   useEffect(() => {
@@ -44,48 +54,47 @@ export function AppProvider({ children }) {
   // Firestore Real-time Sync
   useEffect(() => {
     let unsubscribe = () => {};
+    setSyncStatus('connecting');
+    
     try {
       const q = query(collection(db, 'appointments'), orderBy('bookedAt', 'desc'));
       unsubscribe = onSnapshot(q, (snapshot) => {
         const apts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log(`📊 Firestore Sync: ${apts.length} appointments loaded.`);
+        const now = new Date().toLocaleTimeString();
+        setLastSync(now);
+        setSyncStatus('synced');
+        setSyncError(null);
         
-        // Debug ID breakdown
-        const idCounts = apts.reduce((acc, a) => {
-          acc[a.doctorId] = (acc[a.doctorId] || 0) + 1;
-          return acc;
-        }, {});
-        console.log("📍 Appointment ID Breakdown:", idCounts);
+        console.log(`📊 [Sync] Data Received at ${now}: ${apts.length} appointments.`);
+        toast.dismiss('sync-toast');
+        
+        if (apts.length === 0) {
+          console.warn("⚠️ [Sync] The appointments collection is EMPTY in Firestore.");
+        }
         
         setAppointments(apts);
       }, (error) => {
-        console.error("Firestore snapshot error:", error);
-        // Don't block app loading if Firestore fails
+        console.error("🔥 [Sync] Firestore snapshot error:", error);
+        setSyncStatus('error');
+        setSyncError(error.message);
+        toast.dismiss('sync-toast');
+
+        if (error.code === 'permission-denied') {
+          console.error("❌ [PERM] Access Denied! Please check Firestore Rules.");
+          toast.error("Database access denied (Code 7). Check your permissions!", { duration: 6000 });
+        } else {
+          toast.error("Sync Error: " + error.code);
+        }
       });
 
-      // Seed data if empty (for demo)
-      const seedData = async () => {
-        try {
-          const querySnapshot = await getDocs(collection(db, 'appointments'));
-          if (querySnapshot.empty) {
-            for (const apt of sampleAppointments) {
-              await addDoc(collection(db, 'appointments'), {
-                ...apt,
-                id: undefined // Let Firestore generate ID
-              });
-            }
-          }
-        } catch (e) {
-          console.error("Error seeding data:", e);
-        }
-      };
-      seedData();
+      // No auto-seeding here to keep things clean for cross-device sync testing
     } catch (e) {
-      console.error("Firestore connection error:", e);
+      console.error("🔥 [Sync] Connection error:", e);
+      setSyncStatus('error');
     }
 
     return () => unsubscribe();
-  }, []);
+  }, [syncTrigger]);
 
   // Auth state listener - this is the primary gate for loading
   useEffect(() => {
@@ -108,7 +117,12 @@ export function AppProvider({ children }) {
 
         // Link doctor accounts to their profile ID
         const normalizedEmail = (user.email || '').trim().toLowerCase();
-        const doctorId = role === 'doctor' ? DOCTOR_EMAIL_MAP[normalizedEmail] : null;
+        let doctorId = DOCTOR_EMAIL_MAP[normalizedEmail] || null;
+        
+        // If they have an email in the map, they are definitely a doctor
+        if (doctorId) {
+          role = 'doctor';
+        }
 
         setCurrentUser({
           id: user.uid,
@@ -334,6 +348,7 @@ export function AppProvider({ children }) {
     pendingBooking, setPendingBooking,
     getDoctorById,
     getUpcomingAppointments, getPastAppointments,
+    syncStatus, lastSync, syncError, refreshSync
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

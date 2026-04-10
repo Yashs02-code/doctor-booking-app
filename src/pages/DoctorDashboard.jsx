@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, Users, Award, Star, ChevronLeft, ChevronRight, Plus, Filter, Check, X, TrendingUp, Brain, Zap } from 'lucide-react';
+import { Calendar, Clock, Users, Award, Star, ChevronLeft, ChevronRight, Plus, Filter, Check, X, TrendingUp, Brain, Zap, RefreshCw, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
@@ -29,26 +29,35 @@ const CustomTooltip = ({ active, payload, label, darkMode }) => {
   );
 };
 
-const DebugBanner = ({ user, darkMode }) => (
+const DebugBanner = ({ user, totalCount, syncStatus, lastSync, onRefresh, darkMode }) => (
   <div style={{
     background: darkMode ? 'rgba(37,99,235,0.1)' : 'rgba(37,99,235,0.05)',
-    border: '1px dashed #2563eb',
+    border: `1px dashed ${syncStatus === 'error' ? '#ef4444' : '#2563eb'}`,
     borderRadius: 16, padding: '12px 20px', marginBottom: 24,
     display: 'flex', justifyContent: 'space-between', alignItems: 'center'
   }}>
-    <div style={{ display: 'flex', gap: 20 }}>
-      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Email:</span> <strong style={{ color: '#2563eb' }}>{user?.email}</strong></div>
+    <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>UID:</span> <code style={{ color: '#6366f1' }}>{user?.id?.substring(0,8)}...</code></div>
       <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Role:</span> <strong style={{ color: '#10b981' }}>{user?.role}</strong></div>
-      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Doctor ID:</span> <strong style={{ color: '#7c3aed' }}>{user?.doctorId || 'None (Legacy/Patient)'}</strong></div>
-      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Total Data:</span> <strong style={{ color: '#f59e0b' }}>{totalCount} total appointments</strong></div>
+      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Doctor ID:</span> <strong style={{ color: '#7c3aed' }}>{user?.doctorId || 'None'}</strong></div>
+      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Appts:</span> <strong style={{ color: '#f59e0b' }}>{totalCount}</strong></div>
+      <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Sync:</span> <strong style={{ color: syncStatus === 'synced' ? '#10b981' : '#ef4444' }}>{syncStatus}</strong></div>
+      {lastSync && <div style={{ fontSize: 13 }}><span style={{ color: '#64748b' }}>Last:</span> <strong>{lastSync}</strong></div>}
     </div>
-    <div style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', textTransform: 'uppercase' }}>🔧 Diagnostic Mode</div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+        onClick={onRefresh}
+        style={{ padding: '6px 12px', borderRadius: 8, background: '#2563eb', color: 'white', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <RefreshCw size={12} /> Force Sync
+      </motion.button>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', textTransform: 'uppercase' }}>🔧 Diagnostics</div>
+    </div>
   </div>
 );
 
 export default function DoctorDashboard() {
   const { t } = useTranslation();
-  const { darkMode, appointments, currentUser, getDoctorById, updateAppointmentStatus, loading } = useApp();
+  const { darkMode, appointments, currentUser, getDoctorById, updateAppointmentStatus, loading, syncStatus, lastSync, refreshSync } = useApp();
   const [currentWeek, setCurrentWeek] = useState(new Date('2026-03-27'));
   const [selectedDay, setSelectedDay] = useState(new Date('2026-03-28'));
   const [activeInsight, setActiveInsight] = useState(null);
@@ -79,8 +88,15 @@ export default function DoctorDashboard() {
     <PageWrapper>
       <div style={{ padding: '32px 24px', maxWidth: 1300, margin: '0 auto' }}>
         
-        {/* Debug Banner - Commented out for production feel. Uncomment for diagnostics if needed. */}
-        {/* <DebugBanner user={currentUser} totalCount={totalCount} darkMode={darkMode} /> */}
+        {/* Debug Banner - CRITICAL FOR SYNC VERIFICATION */}
+        <DebugBanner 
+          user={currentUser} 
+          totalCount={totalCount} 
+          syncStatus={syncStatus} 
+          lastSync={lastSync}
+          onRefresh={refreshSync}
+          darkMode={darkMode} 
+        />
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
@@ -89,8 +105,14 @@ export default function DoctorDashboard() {
               {t('doctor_dashboard.title')}
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} className="pulse-slow" />
-              <p style={{ color: '#10b981', fontSize: 13, fontWeight: 700, margin: 0 }}>{t('doctor_dashboard.sync')}</p>
+              <div style={{ 
+                width: 8, height: 8, borderRadius: '50%', 
+                background: syncStatus === 'synced' ? '#10b981' : (syncStatus === 'error' ? '#ef4444' : '#f59e0b'), 
+                boxShadow: `0 0 8px ${syncStatus === 'synced' ? '#10b981' : '#f59e0b'}` 
+              }} className={syncStatus === 'connecting' ? 'pulse-fast' : 'pulse-slow'} />
+              <p style={{ color: syncStatus === 'synced' ? '#10b981' : '#f59e0b', fontSize: 13, fontWeight: 700, margin: 0 }}>
+                {syncStatus === 'synced' ? t('doctor_dashboard.sync') : (syncStatus === 'connecting' ? 'Connecting...' : 'Sync Error')}
+              </p>
               <div style={{ width: 1, height: 12, background: '#cbd5e1', margin: '0 4px' }} />
               <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>{t('doctor_dashboard.welcome', { name: doctor?.name })}</p>
             </div>
