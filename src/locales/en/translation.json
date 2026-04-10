@@ -252,7 +252,18 @@
     "subtitle": "Your appointment has been successfully scheduled. We've sent the details to your email and phone.",
     "booking_id": "Booking ID",
     "go_dashboard": "Go to Dashboard",
-    "view_n8n": "View n8n Automation Workflow"
+    "view_n8n": "View n8n Automation Workflow",
+    "download_prescription": "Download Digital Prescription",
+    "digital_prescription": "Digital Prescription",
+    "prescription_desc": "This is a digital booking confirmation for your records.",
+    "clinic_name": "Medi AI Clinic",
+    "patient_name": "Patient Name",
+    "doctor_name": "Doctor Name",
+    "specialty": "Specialty",
+    "date": "Date",
+    "time": "Time",
+    "booking_id": "Booking ID",
+    "verified": "Verified Booking"
   },
   "language_select": {
     "title": "Choose Language",

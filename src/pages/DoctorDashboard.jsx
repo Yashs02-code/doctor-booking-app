@@ -67,10 +67,11 @@ export default function DoctorDashboard() {
   const doctorProfile = getDoctorById(currentUser?.doctorId || 'd1');
   const totalCount = appointments.length;
   
-  const doctorAppointments = appointments.filter(a => 
-    (a.doctorEmail === doctorEmail || a.doctorId === currentUser?.doctorId) && 
-    a.status !== 'cancelled'
-  );
+  const doctorAppointments = appointments.filter(a => {
+    const emailMatch = a.doctorEmail?.toLowerCase() === doctorEmail;
+    const idMatch = a.doctorId === currentUser?.doctorId;
+    return (emailMatch || idMatch) && a.status !== 'cancelled';
+  });
   
   const pendingRequests = doctorAppointments.filter(a => a.status === 'pending');
 

@@ -7,10 +7,12 @@ import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, Calendar, Clock, MapPin, Home, Share2, ArrowRight } from 'lucide-react';
+import { CheckCircle, Calendar, Clock, MapPin, Home, Share2, Download, FileText } from 'lucide-react';
 import PageWrapper from '../components/PageWrapper';
 import ConfettiWrapper from '../components/ConfettiWrapper';
 import NotificationBanner from '../components/NotificationBanner';
+import { jsPDF } from 'jspdf';
+import QRCode from 'qrcode';
 
 export default function Confirmation() {
   const { t } = useTranslation();
@@ -101,6 +103,131 @@ export default function Confirmation() {
       }).catch(console.error);
     } else {
       toast(t('confirmation.copied'));
+    }
+  };
+
+  const downloadPrescription = async () => {
+    const loadingToast = toast.loading(t('confirmation.confirming'));
+    try {
+      const docPdf = new jsPDF();
+      const qrData = window.location.href;
+      const qrDataUrl = await QRCode.toDataURL(qrData);
+
+      // --- PDF STYLING ---
+      // Primary Color
+      const primaryColor = [37, 99, 235]; // #2563eb
+      
+      // Header: Branding
+      docPdf.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      docPdf.rect(0, 0, 210, 40, 'F');
+      
+      // Clinic Logo Placeholder (Circle with M)
+      docPdf.setFillColor(255, 255, 255);
+      docPdf.circle(25, 20, 10, 'F');
+      docPdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      docPdf.setFontSize(14);
+      docPdf.setFont("helvetica", "bold");
+      docPdf.text("M", 22, 22);
+
+      // Clinic Info
+      docPdf.setTextColor(255, 255, 255);
+      docPdf.setFontSize(22);
+      docPdf.text("Medi AI Clinic", 40, 22);
+      docPdf.setFontSize(10);
+      docPdf.setFont("helvetica", "normal");
+      docPdf.text("Autonomous Healthcare Orchestration", 40, 30);
+      docPdf.text("Phone: +91 8928024884", 150, 30);
+
+      // Prescription Title
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(18);
+      docPdf.setFont("helvetica", "bold");
+      docPdf.text(t('confirmation.digital_prescription').toUpperCase(), 105, 55, { align: 'center' });
+      
+      // Divider
+      docPdf.setDrawColor(200, 200, 200);
+      docPdf.line(20, 60, 190, 60);
+
+      // Section 1: Patient Details
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.patient_name'), 20, 75);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(apt.patientName, 20, 82);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.booking_id'), 130, 75);
+      docPdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      docPdf.setFontSize(13);
+      docPdf.text(id.slice(-8).toUpperCase(), 130, 82);
+
+      // Section 2: Doctor Details
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.doctor_name'), 20, 100);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(doctor.name, 20, 107);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.specialty'), 130, 100);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(doctor.specialty, 130, 107);
+
+      // Section 3: Appointment Details
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.date'), 20, 125);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(apt.date, 20, 132);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.time'), 130, 125);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(apt.time, 130, 132);
+
+      // Hospital Location
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text("Venue", 20, 150);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(12);
+      docPdf.text(`${doctor.hospital}, ${doctor.location}`, 20, 157);
+
+      // Divider
+      docPdf.setDrawColor(200, 200, 200);
+      docPdf.line(20, 170, 190, 170);
+
+      // Prescription Body Placeholder
+      docPdf.setFontSize(10);
+      docPdf.setTextColor(150, 150, 150);
+      docPdf.text(t('confirmation.prescription_desc'), 20, 180);
+
+      // QR Code for Verification
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(10);
+      docPdf.text(t('confirmation.verified'), 160, 195, { align: 'center' });
+      docPdf.addImage(qrDataUrl, 'PNG', 150, 200, 20, 20);
+
+      // Footer
+      docPdf.setFontSize(9);
+      docPdf.setTextColor(150, 150, 150);
+      const footerText = "This is a computer-generated document and does not require a physical signature.";
+      docPdf.text(footerText, 105, 280, { align: 'center' });
+
+      // Save
+      docPdf.save(`Prescription_${id.slice(-8).toUpperCase()}.pdf`);
+      toast.success(t('confirmation.booking_success_toast'), { id: loadingToast });
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      toast.error("Failed to generate PDF", { id: loadingToast });
     }
   };
 
@@ -250,6 +377,19 @@ export default function Confirmation() {
             </motion.button>
           </div>
           
+          <motion.button
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            onClick={downloadPrescription}
+            style={{
+              padding: '16px', borderRadius: 16, border: darkMode ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(16,185,129,0.2)',
+              background: darkMode ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.05)',
+              color: '#10b981', fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              marginTop: 8
+            }}
+          >
+            <Download size={18} /> {t('confirmation.download_prescription')}
+          </motion.button>
         </motion.div>
       </div>
     </PageWrapper>
