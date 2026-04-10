@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Calendar, Clock, MapPin, Phone, MessageSquare, XCircle, Edit2, AlertCircle, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Calendar, Clock, MapPin, Phone, MessageSquare, XCircle, Edit2, AlertCircle, CheckCircle, Download } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 import PageWrapper from '../components/PageWrapper';
 import SkeletonLoader from '../components/SkeletonLoader';
 import SlotPicker from '../components/SlotPicker';
 import toast from 'react-hot-toast';
+import { jsPDF } from 'jspdf';
+import QRCode from 'qrcode';
 
 export default function AppointmentDetail() {
   const { t } = useTranslation();
@@ -39,6 +41,116 @@ export default function AppointmentDetail() {
     rescheduleAppointment(apt.id, selectedDate, selectedSlot);
     setShowReschedule(false);
     toast.success(t('appointment_detail.reschedule_success'));
+  };
+
+  const downloadPrescription = async () => {
+    const loadingToast = toast.loading(t('confirmation.confirming'));
+    try {
+      const docPdf = new jsPDF();
+      const qrData = window.location.href;
+      const qrDataUrl = await QRCode.toDataURL(qrData);
+
+      // --- PDF STYLING ---
+      const primaryColor = [37, 99, 235]; // #2563eb
+      
+      docPdf.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      docPdf.rect(0, 0, 210, 40, 'F');
+      
+      docPdf.setFillColor(255, 255, 255);
+      docPdf.circle(25, 20, 10, 'F');
+      docPdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      docPdf.setFontSize(14);
+      docPdf.setFont("helvetica", "bold");
+      docPdf.text("M", 22, 22);
+
+      docPdf.setTextColor(255, 255, 255);
+      docPdf.setFontSize(22);
+      docPdf.text("Medi AI Clinic", 40, 22);
+      docPdf.setFontSize(10);
+      docPdf.setFont("helvetica", "normal");
+      docPdf.text("Autonomous Healthcare Orchestration", 40, 30);
+      docPdf.text("Phone: +91 8928024884", 150, 30);
+
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(18);
+      docPdf.setFont("helvetica", "bold");
+      docPdf.text(t('confirmation.digital_prescription').toUpperCase(), 105, 55, { align: 'center' });
+      
+      docPdf.setDrawColor(200, 200, 200);
+      docPdf.line(20, 60, 190, 60);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.patient_name'), 20, 75);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(apt.patientName, 20, 82);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.booking_id'), 130, 75);
+      docPdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      docPdf.setFontSize(13);
+      docPdf.text(apt.id.slice(-8).toUpperCase(), 130, 82);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.doctor_name'), 20, 100);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(doc.name, 20, 107);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.specialty'), 130, 100);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(doc.specialty, 130, 107);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.date'), 20, 125);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(apt.date, 20, 132);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text(t('confirmation.time'), 130, 125);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(13);
+      docPdf.text(apt.time, 130, 132);
+
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(100, 100, 100);
+      docPdf.text("Venue", 20, 150);
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(12);
+      docPdf.text(`${doc.hospital}, ${doc.location}`, 20, 157);
+
+      docPdf.setDrawColor(200, 200, 200);
+      docPdf.line(20, 170, 190, 170);
+
+      docPdf.setFontSize(10);
+      docPdf.setTextColor(150, 150, 150);
+      docPdf.text(t('confirmation.prescription_desc'), 20, 180);
+
+      docPdf.setTextColor(0, 0, 0);
+      docPdf.setFontSize(10);
+      docPdf.text(t('confirmation.verified'), 160, 195, { align: 'center' });
+      docPdf.addImage(qrDataUrl, 'PNG', 150, 200, 20, 20);
+
+      docPdf.setFontSize(9);
+      docPdf.setTextColor(150, 150, 150);
+      const footerText = "This is a computer-generated document and does not require a physical signature.";
+      docPdf.text(footerText, 105, 280, { align: 'center' });
+
+      docPdf.save(`Prescription_${apt.id.slice(-8).toUpperCase()}.pdf`);
+      toast.success(t('confirmation.booking_success_toast'), { id: loadingToast });
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      toast.error("Failed to generate PDF", { id: loadingToast });
+    }
   };
 
   const card = {
@@ -161,22 +273,39 @@ export default function AppointmentDetail() {
 
           {/* Actions */}
           {apt.status !== 'cancelled' && (
-            <div style={{ display: 'flex', gap: 12 }}>
-              <motion.button
-                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                 onClick={() => setShowReschedule(true)}
-                 style={{ flex: 1, padding: '14px', borderRadius: 14, border: 'none', background: '#2563eb', color: 'white', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-               >
-                 <Edit2 size={16} /> {t('appointment_detail.reschedule')}
-               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                onClick={handleCancel}
-                disabled={cancelling}
-                 style={{ flex: 1, padding: '14px', borderRadius: 14, border: '1.5px solid #ef4444', background: 'transparent', color: '#ef4444', fontWeight: 700, cursor: cancelling ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-               >
-                 {cancelling ? '...' : <><XCircle size={16} /> {t('appointment_detail.cancel')}</>}
-               </motion.button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowReschedule(true)}
+                  style={{ flex: 1, padding: '14px', borderRadius: 14, border: 'none', background: '#2563eb', color: 'white', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                >
+                  <Edit2 size={16} /> {t('appointment_detail.reschedule')}
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  onClick={handleCancel}
+                  disabled={cancelling}
+                  style={{ flex: 1, padding: '14px', borderRadius: 14, border: '1.5px solid #ef4444', background: 'transparent', color: '#ef4444', fontWeight: 700, cursor: cancelling ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                >
+                  {cancelling ? '...' : <><XCircle size={16} /> {t('appointment_detail.cancel')}</>}
+                </motion.button>
+              </div>
+
+              {apt.status === 'confirmed' && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  onClick={downloadPrescription}
+                  style={{
+                    padding: '16px', borderRadius: 16, border: darkMode ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(16,185,129,0.2)',
+                    background: darkMode ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.05)',
+                    color: '#10b981', fontWeight: 700, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  }}
+                >
+                  <Download size={18} /> {t('confirmation.download_prescription')}
+                </motion.button>
+              )}
             </div>
           )}
         </motion.div>
