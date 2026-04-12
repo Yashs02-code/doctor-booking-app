@@ -14,6 +14,33 @@ import toast from 'react-hot-toast';
 
 const STEPS = ['name', 'age', 'gender', 'symptoms', 'doctor', 'type', 'date', 'slot', 'confirm'];
 
+// ─── Name Validation ─────────────────────────────────────────────────────────
+const FAKE_NAME_BLOCKLIST = [
+  'yyy', 'xyz', 'xyx', 'abc', 'aaa', 'bbb', 'ccc', 'zzz', 'zzz', 'xxx',
+  'qwe', 'qwerty', 'asdf', 'zxcv', 'test', 'testing', 'demo', 'fake', 'dummy',
+  'hello', 'user', 'name', 'someone', 'nobody', 'anonymous', 'temp', 'null', 'none',
+  'nnn', 'mmm', 'lll', 'kkk', 'jjj', 'iii', 'hhh', 'ggg', 'fff', 'eee', 'ddd',
+];
+
+function isValidName(val) {
+  const trimmed = (val || '').trim();
+  if (trimmed.length < 3) return false;
+  // Must contain only letters, spaces, hyphens, apostrophes
+  if (!/^[a-zA-Z\s'\-\.]+$/.test(trimmed)) return false;
+  // Block obvious blocklisted values (check each word)
+  const words = trimmed.toLowerCase().split(/\s+/);
+  for (const word of words) {
+    if (FAKE_NAME_BLOCKLIST.includes(word)) return false;
+    // Reject purely repeated characters (e.g. aaaa, yyyy)
+    if (word.length >= 2 && new Set(word).size === 1) return false;
+    // Each word must be at least 2 chars
+    if (word.length < 2) return false;
+  }
+  // Must have at least one word with 2+ chars
+  if (!words.some(w => w.length >= 2)) return false;
+  return true;
+}
+
 function getAIMessage(step, t, ctx = {}) {
   const msgs = {
     name: t('aichat.steps.name'),
@@ -142,6 +169,13 @@ export default function AIChat() {
 
   function processStep(val) {
     if (step === 'name') {
+      if (!isValidName(val)) {
+        addAI(
+          `⚠️ Please enter your **real full name** (e.g., Rahul Sharma, Priya Mehta).\nRandom text or single words are not accepted. Please try again.`,
+          800
+        );
+        return; // Don't advance step
+      }
       const newCtx = { ...ctx, name: val };
       setCtx(newCtx);
       setStep('age');
@@ -196,6 +230,25 @@ export default function AIChat() {
       setStep('slot');
       addAI(getAIMessage('slot', t, { ...newCtx }), 1000);
     } else if (step === 'slot') {
+      // Check if the selected slot is already booked
+      if (bookedSlots.includes(val)) {
+        // Find next available slot
+        const nextAvailable = availableSlots.find(s => !bookedSlots.includes(s) && s !== val);
+        if (nextAvailable) {
+          addAI(
+            `⏰ The selected time slot **${val}** is already booked.\n\nI have found the next available slot at **${nextAvailable}**. Would you like to book it instead?`,
+            800
+          );
+          // Auto-select the next available slot so user can tap it
+          setSelectedSlot(nextAvailable);
+        } else {
+          addAI(
+            `⚠️ Sorry, all slots for this date are fully booked. Please go back and choose a different date.`,
+            800
+          );
+        }
+        return; // Don't advance
+      }
       const newCtx = { ...ctx, time: val };
       setCtx(newCtx);
       setSelectedSlot(val);

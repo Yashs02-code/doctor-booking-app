@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import { Activity, Eye, EyeOff, Mail, Lock, User, Phone, AlertCircle } from 'lucide-react';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signInWithPopup, 
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   updateProfile,
   sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
+import { GoogleAuthProvider } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ALLOWED_DOCTOR_EMAILS } from '../data/dummyData';
+import { saveGoogleAccessToken } from '../utils/googleCalendar';
 
 export default function Auth() {
   const { t } = useTranslation();
@@ -30,9 +34,63 @@ export default function Auth() {
   const [role, setRole] = useState('patient');
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [googleUser, setGoogleUser] = useState(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  // ------- Phone validation helper -------
+  const isPhoneValid = (p) => /^[0-9]{10}$/.test(p);
+  const phoneError = phoneTouched && !isPhoneValid(form.phone);
+
+  // Handle phone input: digits only, max 10
+  const handlePhoneChange = (e) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setForm({ ...form, phone: digits });
+  };
+
+  // ------- getRedirectResult: catch Google redirect on page load -------
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (!result) return;
+        const user = result.user;
+
+        // Save Google OAuth token for Calendar API
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        if (credential?.accessToken) saveGoogleAccessToken(credential.accessToken);
+
+        setLoading(true);
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (!userDoc.exists()) {
+          setGoogleUser(user);
+          setShowRoleSelection(true);
+        } else {
+          const userData = userDoc.data();
+          toast.success(t('auth.google_success'));
+          navigate(userData.role === 'doctor' ? '/doctor-dashboard' : '/home');
+        }
+      } catch (err) {
+        if (err.code !== 'auth/no-current-user') {
+          console.error('Redirect result error:', err);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    handleRedirectResult();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate phone for registration
+    if (mode === 'register') {
+      setPhoneTouched(true);
+      if (!isPhoneValid(form.phone)) {
+        toast.error('Please enter a valid 10-digit mobile number.');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       if (mode === 'login') {
@@ -42,15 +100,13 @@ export default function Auth() {
         // Restrict Doctor registration to whitelist
         if (role === 'doctor' && !ALLOWED_DOCTOR_EMAILS.includes(form.email.toLowerCase())) {
           setLoading(false);
-          toast.error("This email is not authorized for Doctor access.");
+          toast.error('This email is not authorized for Doctor access.');
           return;
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
-        await updateProfile(userCredential.user, {
-          displayName: form.name,
-        });
-        
+        await updateProfile(userCredential.user, { displayName: form.name });
+
         // Save user profile to Firestore
         await setDoc(doc(db, 'users', userCredential.user.uid), {
           name: form.name,
@@ -80,26 +136,47 @@ export default function Auth() {
 
   const handleGoogle = async () => {
     setLoading(true);
+    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+
     try {
+      if (isMobile) {
+        // Use redirect for mobile to avoid popup blockers on Vercel/iOS
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+        await signInWithRedirect(auth, googleProvider);
+        // Result handled by getRedirectResult in useEffect above
+        return;
+      }
+
+      // Desktop — use popup
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      
+
+      // Save Google OAuth access token for Calendar API (used when booking appointments)
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential?.accessToken) saveGoogleAccessToken(credential.accessToken);
+
       // Check if user exists in Firestore
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (!userDoc.exists()) {
-        // New user - show role selection
+        // New user — show role selection
         setGoogleUser(user);
         setShowRoleSelection(true);
-        setLoading(false); // Stop loading to show modal
+        setLoading(false);
         return;
       }
-      
+
       const userData = userDoc.data();
       toast.success(t('auth.google_success'));
       navigate(userData.role === 'doctor' ? '/doctor-dashboard' : '/home');
     } catch (error) {
-      console.error(error);
-      toast.error('Google Sign-In failed');
+      console.error('Google Sign-In error:', error);
+      if (error.code === 'auth/popup-blocked') {
+        toast.error('Popup was blocked. Trying redirect...');
+        await signInWithRedirect(auth, googleProvider);
+      } else if (error.code !== 'auth/cancelled-popup-request') {
+        toast.error('Google Sign-In failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -237,9 +314,42 @@ export default function Auth() {
             {mode === 'register' && (
               <motion.div key="phone" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden', marginBottom: 14 }}>
                 <div style={{ position: 'relative' }}>
-                  <Phone size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                  <input className="input-field" style={{ paddingLeft: 42 }} placeholder={t('auth.phone')} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                  <Phone size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: phoneError ? '#ef4444' : '#94a3b8' }} />
+                  <input
+                    className="input-field"
+                    style={{
+                      paddingLeft: 42,
+                      paddingRight: form.phone.length > 0 ? 42 : 16,
+                      borderColor: phoneError ? '#ef4444' : undefined,
+                      boxShadow: phoneError ? '0 0 0 3px rgba(239,68,68,0.15)' : undefined,
+                    }}
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="10-digit mobile number"
+                    value={form.phone}
+                    onChange={handlePhoneChange}
+                    onBlur={() => setPhoneTouched(true)}
+                  />
+                  {form.phone.length > 0 && (
+                    <div style={{
+                      position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                      fontSize: 11, fontWeight: 700,
+                      color: isPhoneValid(form.phone) ? '#10b981' : '#ef4444',
+                    }}>
+                      {form.phone.length}/10
+                    </div>
+                  )}
                 </div>
+                {phoneError && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, paddingLeft: 4 }}>
+                    <AlertCircle size={13} color="#ef4444" />
+                    <span style={{ fontSize: 12, color: '#ef4444', fontWeight: 500 }}>Must be exactly 10 digits, no letters</span>
+                  </div>
+                )}
+                {!phoneError && isPhoneValid(form.phone) && (
+                  <div style={{ fontSize: 12, color: '#10b981', fontWeight: 500, marginTop: 6, paddingLeft: 4 }}>✓ Valid mobile number</div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

@@ -18,7 +18,7 @@ export default function Confirmation() {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { darkMode, appointments, getDoctorById, loading: contextLoading } = useApp();
+  const { darkMode, appointments, getDoctorById, loading: contextLoading, currentUser } = useApp();
   const [showConfetti, setShowConfetti] = useState(true);
   const [localApt, setLocalApt] = useState(null);
   const [fetching, setFetching] = useState(true);
@@ -376,6 +376,52 @@ export default function Confirmation() {
               <Share2 size={20} />
             </motion.button>
           </div>
+
+          {/* ── Smart Scheduling Status Card (patients only) ── */}
+          {currentUser?.role === 'patient' && (
+            <div style={{
+              borderRadius: 20,
+              border: darkMode ? '1px solid rgba(255,215,0,0.3)' : '1px solid rgba(255,215,0,0.2)',
+              background: darkMode ? 'rgba(255,215,0,0.05)' : 'rgba(255,215,0,0.03)',
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              textAlign: 'center'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  background: '#10b981', color: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(16,185,129,0.3)'
+                }}>
+                   <Calendar size={20} />
+                </div>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontWeight: 800, fontSize: 15, color: darkMode ? '#fcd34d' : '#854d0e' }}>
+                    Auto-Scheduled! ⚡
+                  </div>
+                  <div style={{ fontSize: 12, color: darkMode ? '#94a3b8' : '#64748b', fontWeight: 500 }}>
+                    Synced to your Google Calendar
+                  </div>
+                </div>
+              </div>
+
+              <div style={{
+                background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.6)',
+                padding: '12px', borderRadius: 12,
+                fontSize: 12, color: darkMode ? '#cbd5e1' : '#475569',
+                lineHeight: 1.5, border: darkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, justifyContent: 'center' }}>
+                  <span style={{ fontSize: 14 }}>📧</span> 
+                  <strong>Automatic Reminders Set:</strong>
+                </div>
+                Sent to your email at <strong>24 hours</strong> and <strong>1 hour</strong> before your appointment.
+              </div>
+            </div>
+          )}
           
           <motion.button
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -385,7 +431,6 @@ export default function Confirmation() {
               background: darkMode ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.05)',
               color: '#10b981', fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              marginTop: 8
             }}
           >
             <Download size={18} /> {t('confirmation.download_prescription')}

@@ -4,6 +4,8 @@ import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, getDocs
 import { auth, db } from '../firebase';
 import { doctors as defaultDoctors, sampleAppointments, DOCTOR_EMAIL_MAP } from '../data/dummyData';
 import toast from 'react-hot-toast';
+import { sendBookingConfirmationEmail } from '../utils/emailNotification';
+import { createGoogleCalendarEvent, getStoredGoogleToken } from '../utils/googleCalendar';
 
 const GOOGLE_SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_WEBAPP_URL;
 
@@ -226,34 +228,84 @@ export function AppProvider({ children }) {
       status: 'pending',
       bookedAt: new Date().toISOString(),
       patientId: currentUser?.id || 'guest',
+      patientEmail: currentUser?.email || '',   // store patient email for reference
     };
+
+    // Helper: send confirmation email to patient
+    const triggerConfirmationEmail = async (aptResult) => {
+      const doctorObj = doctors.find(d => d.id === aptResult.doctorId);
+      await sendBookingConfirmationEmail({
+        toEmail:         currentUser?.email || '',
+        toName:          aptResult.patientName || currentUser?.name || 'Patient',
+        doctorName:      doctorObj?.name || aptResult.doctorName || 'Your Doctor',
+        specialty:       doctorObj?.specialty || '',
+        date:            aptResult.date,
+        time:            aptResult.time,
+        hospital:        doctorObj?.hospital || '',
+        location:        doctorObj?.location || '',
+        appointmentType: aptResult.appointmentType,
+        symptoms:        aptResult.symptoms,
+        bookingId:       aptResult.id,
+        fee:             aptResult.fee || doctorObj?.fee,
+      });
+    };
+
     try {
       const docRef = await addDoc(collection(db, 'appointments'), newAptData);
       const result = { id: docRef.id, ...newAptData };
-      
-      // SYNC TO GOOGLE SHEET (Don't wait for it to finish to avoid delaying UI)
+
+      // 1️⃣ SYNC TO GOOGLE SHEET (fire-and-forget)
       syncToGoogleSheet(result);
-      
-      toast.success("Appointment booked and synced! 🏥✅");
+
+      // 2️⃣ SEND BREVO CONFIRMATION EMAIL (fire-and-forget)
+      triggerConfirmationEmail(result).catch(err =>
+        console.error('Email notification error:', err)
+      );
+
+      // 3️⃣ AUTO-ADD TO PATIENT'S GOOGLE CALENDAR (fire-and-forget)
+      const googleToken = getStoredGoogleToken();
+      if (googleToken) {
+        const doctorObj = doctors.find(d => d.id === result.doctorId);
+        createGoogleCalendarEvent(result, doctorObj, googleToken)
+          .then(event => {
+            if (event) {
+              toast.success(
+                '📅 Added to your Google Calendar! Reminder emails set for 24h & 1h before.',
+                { duration: 5000, icon: '📧' }
+              );
+            }
+          })
+          .catch(err => console.error('Google Calendar sync error:', err));
+      }
+
+      toast.success('Appointment booked and synced! 🏥✅');
       return result;
     } catch (e) {
-      console.error("Error booking to Firestore:", e);
-      
-      // PERSISTENT FALLBACK: Save locally if Firestore fails (Permission error, etc)
+      console.error('Error booking to Firestore:', e);
+
+      // PERSISTENT FALLBACK
       const localId = `local_${Date.now()}`;
       const localApt = { id: localId, ...newAptData, isLocal: true };
       setLocalAppointments(prev => [localApt, ...prev]);
-      
-      // SYNC TO GOOGLE SHEET (Still attempt sync even if Firestore fails)
+
       syncToGoogleSheet(localApt);
-      
-      // More descriptive error message
-      if (e.code === 'permission-denied') {
-        toast.error("Database access denied! Please check Firestore Rules. 🛡️", { duration: 5000 });
-      } else {
-        toast.error("Database connection limited. Saved locally! 📱", { duration: 4000 });
+      triggerConfirmationEmail(localApt).catch(err =>
+        console.error('Email notification error (local):', err)
+      );
+
+      // Also try Google Calendar even for local appointments
+      const googleToken = getStoredGoogleToken();
+      if (googleToken) {
+        const doctorObj = doctors.find(d => d.id === localApt.doctorId);
+        createGoogleCalendarEvent(localApt, doctorObj, googleToken).catch(console.error);
       }
-      
+
+      if (e.code === 'permission-denied') {
+        toast.error('Database access denied! Please check Firestore Rules. 🛡️', { duration: 5000 });
+      } else {
+        toast.error('Database connection limited. Saved locally! 📱', { duration: 4000 });
+      }
+
       return localApt;
     }
   };

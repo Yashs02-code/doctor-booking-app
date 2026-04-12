@@ -17,7 +17,13 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase services
 export const auth = getAuth(app);
+
+// Google provider — request Calendar access so we can auto-add appointment events
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
 export const db = getFirestore(app);
 
 export default app;

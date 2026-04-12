@@ -182,6 +182,11 @@ export default function Navbar() {
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="mobile-nav-menu"
+              style={{
+                background: darkMode ? '#0d1629' : '#ffffff',
+                color: darkMode ? '#e2e8f0' : '#0f172a',
+                borderLeft: darkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(148,163,184,0.15)',
+              }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
                 <span style={{ fontWeight: 800, fontSize: 20, color: darkMode ? 'white' : '#0f172a' }}>Menu</span>
