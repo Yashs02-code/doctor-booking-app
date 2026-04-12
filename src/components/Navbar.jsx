@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, Activity, Calendar, MessageSquare, LayoutDashboard, TrendingUp, LogOut, User, Menu, X } from 'lucide-react';
@@ -15,11 +16,11 @@ export default function Navbar() {
 
 
   const navItems = [
-    { path: '/home',            icon: <LayoutDashboard size={18} />, label: t('nav.home') },
-    { path: '/chat',            icon: <MessageSquare size={18} />,   label: t('nav.ai_book'), role: 'patient' },
-    { path: '/appointments',    icon: <Calendar size={18} />,        label: t('nav.appointments') },
-    { path: '/doctor-dashboard',icon: <Activity size={18} />,        label: t('nav.doctor_portal'), role: 'doctor' },
-    { path: '/insights',        icon: <TrendingUp size={18} />,      label: t('nav.insights'), role: 'doctor' },
+    { path: '/home', icon: <LayoutDashboard size={18} />, label: t('nav.home') },
+    { path: '/chat', icon: <MessageSquare size={18} />, label: t('nav.ai_book'), role: 'patient' },
+    { path: '/appointments', icon: <Calendar size={18} />, label: t('nav.appointments') },
+    { path: '/doctor-dashboard', icon: <Activity size={18} />, label: t('nav.doctor_portal'), role: 'doctor' },
+    { path: '/insights', icon: <TrendingUp size={18} />, label: t('nav.insights'), role: 'doctor' },
   ].filter(item => !item.role || item.role === currentUser?.role);
 
   const handleLogout = () => { logout(); navigate('/auth'); setProfileOpen(false); setMobileMenuOpen(false); };
@@ -32,11 +33,12 @@ export default function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
       style={{
-        position: 'sticky', top: 0, zIndex: 100,
+        position: 'sticky', top: 0, zIndex: 100000,
         background: darkMode ? 'rgba(10,15,30,0.85)' : 'rgba(255,255,255,0.85)',
         backdropFilter: 'blur(20px)',
         borderBottom: darkMode ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(148,163,184,0.15)',
         padding: '0 24px',
+        isolation: 'isolate',
       }}
     >
       <div style={{ maxWidth: 1200, margin: '0 auto', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -165,101 +167,106 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Nav Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeMobileMenu}
-              className="mobile-nav-overlay"
-            />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="mobile-nav-menu"
-              style={{
-                background: darkMode ? '#0d1629' : '#ffffff',
-                color: darkMode ? '#e2e8f0' : '#0f172a',
-                borderLeft: darkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(148,163,184,0.15)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-                <span style={{ fontWeight: 800, fontSize: 20, color: darkMode ? 'white' : '#0f172a' }}>Menu</span>
-                <button onClick={closeMobileMenu} style={{ background: 'none', border: 'none', color: darkMode ? '#94a3b8' : '#64748b', cursor: 'pointer' }}>
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {navItems.map(item => {
-                  const active = location.pathname === item.path;
-                  return (
-                    <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }} onClick={closeMobileMenu}>
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 12,
-                        padding: '14px 16px', borderRadius: 12,
-                        background: active ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'transparent',
-                        color: active ? 'white' : darkMode ? '#94a3b8' : '#475569',
-                        fontSize: 15, fontWeight: active ? 600 : 500,
-                      }}>
-                        {item.icon} {item.label}
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              <div style={{ marginTop: 'auto', paddingTop: 24, borderTop: darkMode ? '1px solid rgba(255,255,255,0.07)' : '1px solid #f1f5f9' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: '0 8px' }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700
-                  }}>
-                    {currentUser?.avatar || currentUser?.name?.charAt(0)}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: darkMode ? 'white' : '#0f172a' }}>{currentUser?.name}</div>
-                    <div style={{ fontSize: 12, color: '#64748b' }}>{currentUser?.email}</div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <button onClick={() => { setDarkMode(!darkMode); }} style={{
-                    display: 'flex', alignItems: 'center', gap: 12, width: '100%',
-                    padding: '14px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                    background: 'transparent', color: darkMode ? '#fbbf24' : '#475569', fontSize: 15, fontWeight: 500,
-                    textAlign: 'left'
-                  }}>
-                    {darkMode ? <Sun size={18} /> : <Moon size={18} />} {darkMode ? 'Light Mode' : 'Dark Mode'}
-                  </button>
-                  <button onClick={() => { navigate('/profile'); closeMobileMenu(); }} style={{
-                    display: 'flex', alignItems: 'center', gap: 12, width: '100%',
-                    padding: '14px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                    background: 'transparent', color: darkMode ? '#94a3b8' : '#475569', fontSize: 15, fontWeight: 500,
-                    textAlign: 'left'
-                  }}>
-                    <User size={18} /> {t('nav.my_profile')}
-                  </button>
-                  <button onClick={handleLogout} style={{
-                    display: 'flex', alignItems: 'center', gap: 12, width: '100%',
-                    padding: '14px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                    background: 'transparent', color: '#ef4444', fontSize: 15, fontWeight: 500,
-                    textAlign: 'left'
-                  }}>
-                    <LogOut size={18} /> {t('nav.sign_out')}
+      {/* Mobile Nav Menu (Rendered via Portal) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={closeMobileMenu}
+                className="mobile-nav-overlay"
+                style={{ zIndex: 2000000 }}
+              />
+              <motion.div
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="mobile-nav-menu"
+                style={{
+                  background: darkMode ? '#0d1629' : '#ffffff',
+                  color: darkMode ? '#e2e8f0' : '#0f172a',
+                  borderLeft: darkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(148,163,184,0.15)',
+                  zIndex: 2000001,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+                  <span style={{ fontWeight: 800, fontSize: 20, color: darkMode ? 'white' : '#0f172a' }}>Menu</span>
+                  <button onClick={closeMobileMenu} style={{ background: 'none', border: 'none', color: darkMode ? '#94a3b8' : '#64748b', cursor: 'pointer' }}>
+                    <X size={24} />
                   </button>
                 </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {navItems.map(item => {
+                    const active = location.pathname === item.path;
+                    return (
+                      <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }} onClick={closeMobileMenu}>
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: 12,
+                          padding: '14px 16px', borderRadius: 12,
+                          background: active ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'transparent',
+                          color: active ? 'white' : darkMode ? '#94a3b8' : '#475569',
+                          fontSize: 15, fontWeight: active ? 600 : 500,
+                        }}>
+                          {item.icon} {item.label}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                <div style={{ marginTop: 'auto', paddingTop: 24, borderTop: darkMode ? '1px solid rgba(255,255,255,0.07)' : '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: '0 8px' }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700
+                    }}>
+                      {currentUser?.avatar || currentUser?.name?.charAt(0)}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: darkMode ? 'white' : '#0f172a' }}>{currentUser?.name}</div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>{currentUser?.email}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <button onClick={() => { setDarkMode(!darkMode); }} style={{
+                      display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                      padding: '14px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                      background: 'transparent', color: darkMode ? '#fbbf24' : '#475569', fontSize: 15, fontWeight: 500,
+                      textAlign: 'left'
+                    }}>
+                      {darkMode ? <Sun size={18} /> : <Moon size={18} />} {darkMode ? 'Light Mode' : 'Dark Mode'}
+                    </button>
+                    <button onClick={() => { navigate('/profile'); closeMobileMenu(); }} style={{
+                      display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                      padding: '14px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                      background: 'transparent', color: darkMode ? '#94a3b8' : '#475569', fontSize: 15, fontWeight: 500,
+                      textAlign: 'left'
+                    }}>
+                      <User size={18} /> {t('nav.my_profile')}
+                    </button>
+                    <button onClick={handleLogout} style={{
+                      display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                      padding: '14px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                      background: 'transparent', color: '#ef4444', fontSize: 15, fontWeight: 500,
+                      textAlign: 'left'
+                    }}>
+                      <LogOut size={18} /> {t('nav.sign_out')}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.getElementById('navbar-portal-root')
+      )}
     </motion.nav>
   );
 }

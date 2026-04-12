@@ -6,22 +6,22 @@ import { Toaster } from 'react-hot-toast';
 import { AppProvider, useApp } from './context/AppContext';
 
 // Eagerly loaded (critical path)
-import SplashScreen    from './pages/SplashScreen';
-import LanguageSelect  from './pages/LanguageSelect';
-import Auth            from './pages/Auth';
-import Navbar          from './components/Navbar';
-import DemoModeBanner  from './components/DemoModeBanner';
+import SplashScreen from './pages/SplashScreen';
+import LanguageSelect from './pages/LanguageSelect';
+import Auth from './pages/Auth';
+import Navbar from './components/Navbar';
+import DemoModeBanner from './components/DemoModeBanner';
 
 // Code-split: lazy load non-critical pages to reduce initial bundle
-const Home              = lazy(() => import('./pages/Home'));
-const AIChat            = lazy(() => import('./pages/AIChat'));
-const AppointmentList   = lazy(() => import('./pages/AppointmentList'));
+const Home = lazy(() => import('./pages/Home'));
+const AIChat = lazy(() => import('./pages/AIChat'));
+const AppointmentList = lazy(() => import('./pages/AppointmentList'));
 const AppointmentDetail = lazy(() => import('./pages/AppointmentDetail'));
-const Confirmation      = lazy(() => import('./pages/Confirmation'));
-const DoctorDashboard   = lazy(() => import('./pages/DoctorDashboard'));
+const Confirmation = lazy(() => import('./pages/Confirmation'));
+const DoctorDashboard = lazy(() => import('./pages/DoctorDashboard'));
 const AutomationDiagram = lazy(() => import('./pages/AutomationDiagram'));
-const Insights          = lazy(() => import('./pages/Insights'));
-const ProfilePage       = lazy(() => import('./pages/ProfilePage'));
+const Insights = lazy(() => import('./pages/Insights'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 function LazyFallback() {
   return (
@@ -60,19 +60,19 @@ function AppRoutes() {
       <Suspense fallback={<LazyFallback />}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
-            <Route path="/"             element={<SplashScreen />} />
-            <Route path="/language"     element={<LanguageSelect />} />
-            <Route path="/auth"         element={<Auth />} />
-            <Route path="/home"         element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/chat"         element={<ProtectedRoute allowedRoles={['patient']}><AIChat /></ProtectedRoute>} />
+            <Route path="/" element={<SplashScreen />} />
+            <Route path="/language" element={<LanguageSelect />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/chat" element={<ProtectedRoute allowedRoles={['patient']}><AIChat /></ProtectedRoute>} />
             <Route path="/appointments" element={<ProtectedRoute><AppointmentList /></ProtectedRoute>} />
             <Route path="/appointment/:id" element={<ProtectedRoute><AppointmentDetail /></ProtectedRoute>} />
             <Route path="/confirmation/:id" element={<ProtectedRoute><Confirmation /></ProtectedRoute>} />
             <Route path="/doctor-dashboard" element={<ProtectedRoute allowedRoles={['doctor']}><DoctorDashboard /></ProtectedRoute>} />
-            <Route path="/automation"   element={<ProtectedRoute allowedRoles={['doctor']}><AutomationDiagram /></ProtectedRoute>} />
-            <Route path="/insights"     element={<ProtectedRoute allowedRoles={['doctor']}><Insights /></ProtectedRoute>} />
-            <Route path="/profile"      element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="*"             element={<Navigate to="/" replace />} />
+            <Route path="/automation" element={<ProtectedRoute allowedRoles={['doctor']}><AutomationDiagram /></ProtectedRoute>} />
+            <Route path="/insights" element={<ProtectedRoute allowedRoles={['doctor']}><Insights /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AnimatePresence>
       </Suspense>
