@@ -378,6 +378,7 @@ export default function Confirmation() {
           </div>
 
           {/* ── Smart Scheduling Status Card (patients only) ── */}
+          {/* ── Smart Scheduling Status Card (patients only) ── */}
           {currentUser?.role === 'patient' && (
             <div style={{
               borderRadius: 20,
@@ -418,7 +419,7 @@ export default function Confirmation() {
                   <span style={{ fontSize: 14 }}>📧</span> 
                   <strong>Automatic Reminders Set:</strong>
                 </div>
-                Sent to your email at <strong>24 hours</strong> and <strong>1 hour</strong> before your appointment.
+                Detailed confirmation sent to <strong>{currentUser?.email}</strong>. Reminders set for 24h & 1h before visit.
               </div>
             </div>
           )}

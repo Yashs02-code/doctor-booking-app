@@ -396,12 +396,34 @@ export function AppProvider({ children }) {
       .sort((a, b) => new Date(b.date + ' ' + (b.time || '00:00')) - new Date(a.date + ' ' + (a.time || '00:00')));
   };
 
+  // NEW: Dynamically compute doctors with their updated bookedSlots based on real-time appointments
+  const doctorsWithSlots = React.useMemo(() => {
+    return defaultDoctors.map(doc => {
+      // Start with static booked slots from dummyData
+      const dynamicBookedSlots = { ...(doc.bookedSlots || {}) };
+
+      // Add actual appointments from DB/Local
+      allAppointments.forEach(apt => {
+        if (apt.doctorId === doc.id && apt.status !== 'cancelled') {
+          if (!dynamicBookedSlots[apt.date]) {
+            dynamicBookedSlots[apt.date] = [];
+          }
+          if (!dynamicBookedSlots[apt.date].includes(apt.time)) {
+            dynamicBookedSlots[apt.date].push(apt.time);
+          }
+        }
+      });
+
+      return { ...doc, bookedSlots: dynamicBookedSlots };
+    });
+  }, [allAppointments]);
+
   const value = {
     darkMode, setDarkMode,
     language, setLanguage,
     demoMode, setDemoMode,
     currentUser, loading, login, logout,
-    doctors,
+    doctors: doctorsWithSlots, // Use the dynamic list
     appointments: allAppointments,
     bookAppointment, cancelAppointment, rescheduleAppointment, updateAppointmentStatus,
     pendingBooking, setPendingBooking,
