@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, getDocs, getDoc, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, getDocs, getDoc, setDoc, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { doctors as defaultDoctors, sampleAppointments, DOCTOR_EMAIL_MAP } from '../data/dummyData';
 import toast from 'react-hot-toast';
@@ -55,13 +55,38 @@ export function AppProvider({ children }) {
 
   // Firestore Real-time Sync
   useEffect(() => {
+    // If not logged in, we can't query Firestore appointments due to security rules
+    if (!currentUser) {
+      setAppointments([]);
+      setSyncStatus('connecting');
+      return;
+    }
+
     let unsubscribe = () => {};
     setSyncStatus('connecting');
     
     try {
-      const q = query(collection(db, 'appointments'), orderBy('bookedAt', 'desc'));
+      // Build query based on user role to satisfy firestore security rules
+      let q;
+      if (currentUser.role === 'doctor') {
+        const docId = currentUser.doctorId || currentUser.id;
+        q = query(
+          collection(db, 'appointments'), 
+          where('doctorId', '==', docId)
+        );
+      } else {
+        q = query(
+          collection(db, 'appointments'), 
+          where('patientId', '==', currentUser.id)
+        );
+      }
+
       unsubscribe = onSnapshot(q, (snapshot) => {
         const apts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Sort client-side to avoid needing to create Firestore composite indexes
+        apts.sort((a, b) => new Date(b.bookedAt || 0) - new Date(a.bookedAt || 0));
+
         const now = new Date().toLocaleTimeString();
         setLastSync(now);
         setSyncStatus('synced');
@@ -71,7 +96,7 @@ export function AppProvider({ children }) {
         toast.dismiss('sync-toast');
         
         if (apts.length === 0) {
-          console.warn("⚠️ [Sync] The appointments collection is EMPTY in Firestore.");
+          console.warn("⚠️ [Sync] No appointments found for this user in Firestore.");
         }
         
         setAppointments(apts);
@@ -89,14 +114,13 @@ export function AppProvider({ children }) {
         }
       });
 
-      // No auto-seeding here to keep things clean for cross-device sync testing
     } catch (e) {
       console.error("🔥 [Sync] Connection error:", e);
       setSyncStatus('error');
     }
 
     return () => unsubscribe();
-  }, [syncTrigger]);
+  }, [syncTrigger, currentUser]);
 
   // Auth state listener - this is the primary gate for loading
   useEffect(() => {
