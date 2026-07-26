@@ -18,11 +18,22 @@ import { analytics } from '../firebase';
 async function fire(eventName, params = {}) {
   try {
     const instance = await analytics;
+    
+    // Check if we are running locally (localhost)
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    // Log to browser console so you can see it working in real time!
+    console.log(`📊 [Analytics Event] ${eventName}`, params);
+
     if (instance) {
       logEvent(instance, eventName, {
         ...params,
+        // debug_mode: true makes the event show up instantly in Firebase Console -> DebugView
+        debug_mode: isLocal || import.meta.env.DEV ? true : undefined,
         timestamp: new Date().toISOString(),
       });
+    } else {
+      console.warn(`⚠️ [Analytics] Analytics instance not loaded (possibly blocked by an ad blocker).`);
     }
   } catch (err) {
     // Never crash the app because of analytics
