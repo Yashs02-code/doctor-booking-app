@@ -123,8 +123,22 @@ function buildEmailHTML({
 
 /** Vercel Serverless Handler */
 export default async function handler(req, res) {
-  // --- CORS ---
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // --- CORS (restrict to known origins in production) ---
+  const allowedOrigins = [
+    process.env.ALLOWED_ORIGIN,            // set in Vercel env vars → your domain
+    'http://localhost:3000',               // local dev
+    'http://localhost:5173',               // Vite default port
+  ].filter(Boolean);
+
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    // Server-to-server or curl — allow (no Origin header means not a browser)
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  // If origin doesn't match → don't set header → browser will block it
+
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 

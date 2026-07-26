@@ -1,6 +1,7 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { trackPageView } from './utils/analytics';
 import { Toaster } from 'react-hot-toast';
 
 import { AppProvider, useApp } from './context/AppContext';
@@ -41,9 +42,33 @@ function ProtectedRoute({ children, allowedRoles }) {
   return children;
 }
 
+// Map route paths to human-readable page names for Analytics reports
+const PAGE_NAMES = {
+  '/':                  'Splash Screen',
+  '/language':          'Language Select',
+  '/auth':              'Login / Register',
+  '/home':              'Home',
+  '/chat':              'AI Chat',
+  '/appointments':      'Appointment List',
+  '/confirmation':      'Booking Confirmation',
+  '/doctor-dashboard':  'Doctor Dashboard',
+  '/automation':        'Automation Diagram',
+  '/insights':          'Insights',
+  '/profile':           'Profile',
+};
+
 function AppRoutes() {
   const { loading, darkMode } = useApp();
   const location = useLocation();
+
+  // 📊 Auto-track every page view when route changes
+  useEffect(() => {
+    const path = location.pathname;
+    // Handle dynamic routes like /appointment/:id and /confirmation/:id
+    const basePath = '/' + path.split('/')[1];
+    const pageName = PAGE_NAMES[path] || PAGE_NAMES[basePath] || `Page: ${path}`;
+    trackPageView(pageName, window.location.href);
+  }, [location.pathname]);
 
   if (loading) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a' }}>

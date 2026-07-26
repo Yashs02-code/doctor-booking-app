@@ -69,7 +69,13 @@ function buildDateTimeString(date, time) {
  * Adds 1 hour to a datetime string "2026-04-15T10:30:00" → "2026-04-15T11:30:00"
  */
 function addOneHour(dtStr) {
-  const d = new Date(dtStr);
+  const [datePart, timePart] = (dtStr || '').split('T');
+  if (!datePart || !timePart) return dtStr;
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute, second] = timePart.split(':').map(Number);
+
+  // Month is 0-indexed in JS Date constructor, using explicit parameters prevents cross-browser string parsing issues
+  const d = new Date(year, month - 1, day, hour, minute, second || 0);
   d.setHours(d.getHours() + 1);
   const pad = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
@@ -90,8 +96,8 @@ export async function createGoogleCalendarEvent(appointment, doctor, accessToken
     return null;
   }
 
-  const { date, time, patientName, appointmentType, symptoms, id } = appointment;
-  const { name: doctorName, specialty, hospital, location, fee } = doctor;
+  const { date, time, patientName, appointmentType, symptoms, id } = appointment || {};
+  const { name: doctorName = 'Doctor', specialty = '', hospital = 'Medi Clinic', location = 'Clinic', fee = '' } = doctor || {};
 
   const startDT = buildDateTimeString(date, time);
   const endDT   = addOneHour(startDT);

@@ -85,16 +85,22 @@ export async function sendBookingConfirmationEmail(params) {
 
   try {
     // Attempt 1: Serverless Relay (Recommended for Production)
-    const relayRes = await fetch('/api/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
-    });
+    try {
+      const relayRes = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
 
-    if (relayRes.ok) {
-      const data = await relayRes.json();
-      console.log('✅ Confirmation email sent via Relay | messageId:', data.messageId);
-      return true;
+      if (relayRes.ok) {
+        const data = await relayRes.json();
+        console.log('✅ Confirmation email sent via Relay | messageId:', data.messageId);
+        return true;
+      } else {
+        console.warn('⚠️ Serverless relay returned non-OK status. Trying direct fallback...');
+      }
+    } catch (relayError) {
+      console.warn('⚠️ Serverless relay failed (network/dev mode). Trying direct fallback...', relayError.message);
     }
 
     // Attempt 2: Direct Fallback (Local Development fallback for npm run dev)

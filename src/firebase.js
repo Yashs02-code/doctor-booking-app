@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -23,7 +24,14 @@ export const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
+googleProvider.setCustomParameters({
+  prompt: 'consent'
+});
 
 export const db = getFirestore(app);
+
+// Analytics — only initialise in browser environments that support it
+// (blocked by some ad-blockers; the isSupported() guard prevents crashes)
+export const analytics = isSupported().then((yes) => yes ? getAnalytics(app) : null);
 
 export default app;
