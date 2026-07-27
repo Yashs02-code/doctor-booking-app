@@ -247,18 +247,18 @@ export default function Confirmation() {
 
       <div style={{ padding: '40px 24px', maxWidth: 540, margin: '0 auto', textAlign: 'center' }}>
         <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', damping: 15, stiffness: 100 }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
           style={{
-            width: 100, height: 100, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #10b981, #059669)',
+            width: 96, height: 96, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #f59e0b, #2563eb)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 24px',
-            boxShadow: '0 20px 40px rgba(16,185,129,0.3)',
+            boxShadow: '0 20px 40px rgba(245,158,11,0.3)',
           }}
         >
-          <CheckCircle size={56} color="white" />
+          <Clock size={56} color="white" />
         </motion.div>
 
         <motion.h1
@@ -382,8 +382,8 @@ export default function Confirmation() {
           {currentUser?.role === 'patient' && (
             <div style={{
               borderRadius: 20,
-              border: darkMode ? '1px solid rgba(255,215,0,0.3)' : '1px solid rgba(255,215,0,0.2)',
-              background: darkMode ? 'rgba(255,215,0,0.05)' : 'rgba(255,215,0,0.03)',
+              border: darkMode ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(245,158,11,0.2)',
+              background: darkMode ? 'rgba(245,158,11,0.05)' : 'rgba(245,158,11,0.03)',
               padding: '20px',
               display: 'flex',
               flexDirection: 'column',
@@ -393,34 +393,46 @@ export default function Confirmation() {
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
                 <div style={{
                   width: 40, height: 40, borderRadius: '50%',
-                  background: '#10b981', color: 'white',
+                  background: '#f59e0b', color: 'white',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(16,185,129,0.3)'
+                  boxShadow: '0 4px 12px rgba(245,158,11,0.3)'
                 }}>
                    <Calendar size={20} />
                 </div>
                 <div style={{ textAlign: 'left' }}>
                   <div style={{ fontWeight: 800, fontSize: 15, color: darkMode ? '#fcd34d' : '#854d0e' }}>
-                    Auto-Scheduled! ⚡
+                    Pending Doctor Approval ⏳
                   </div>
                   <div style={{ fontSize: 12, color: darkMode ? '#94a3b8' : '#64748b', fontWeight: 500 }}>
-                    Synced to your Google Calendar
+                    Add this appointment request to your Google Calendar
                   </div>
                 </div>
               </div>
 
-              <div style={{
-                background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.6)',
-                padding: '12px', borderRadius: 12,
-                fontSize: 12, color: darkMode ? '#cbd5e1' : '#475569',
-                lineHeight: 1.5, border: darkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, justifyContent: 'center' }}>
-                  <span style={{ fontSize: 14 }}>📧</span> 
-                  <strong>Automatic Reminders Set:</strong>
-                </div>
-                Detailed confirmation sent to <strong>{currentUser?.email}</strong>. Reminders set for 24h & 1h before visit.
-              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  const startStr = (apt.date || '2026-03-28').replace(/-/g, '') + 'T' + (apt.time || '10:00').replace(':', '') + '00';
+                  const [h, m] = (apt.time || '10:00').split(':').map(Number);
+                  const endH = String((h + 1) % 24).padStart(2, '0');
+                  const endStr = (apt.date || '2026-03-28').replace(/-/g, '') + 'T' + endH + String(m).padStart(2, '0') + '00';
+                  
+                  const title = encodeURIComponent(`⏳ Appointment Booked (Pending Approval) – ${doctor.name}`);
+                  const details = encodeURIComponent(`STATUS: PENDING DOCTOR APPROVAL ⏳\n\nPatient: ${apt.patientName || 'Patient'}\nDoctor: ${doctor.name} (${doctor.specialty})\nVenue: ${doctor.hospital}, ${doctor.location}\nBooking ID: ${(apt.id || '').slice(-8).toUpperCase()}\n\nPlease await doctor confirmation via Medi AI.`);
+                  const location = encodeURIComponent(`${doctor.hospital}, ${doctor.location}`);
+
+                  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startStr}/${endStr}&details=${details}&location=${location}`;
+                  window.open(calendarUrl, '_blank');
+                }}
+                style={{
+                  padding: '12px 18px', borderRadius: 12, border: 'none',
+                  background: '#2563eb', color: 'white', fontWeight: 700, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13,
+                  marginTop: 6
+                }}
+              >
+                <Calendar size={16} /> 📅 Add to Google Calendar (Real-time)
+              </motion.button>
             </div>
           )}
           

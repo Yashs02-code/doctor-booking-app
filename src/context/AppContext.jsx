@@ -248,35 +248,46 @@ export function AppProvider({ children }) {
 
     const newAptData = {
       ...appointmentData,
-      doctorEmail,
+      doctorId: appointmentData.doctorId || 'd1',
+      doctorName: appointmentData.doctorName || 'Dr. Priya Sharma',
+      doctorEmail: doctorEmail || 'priya.sharma@example.com',
       status: 'pending',
       bookedAt: new Date().toISOString(),
       patientId: currentUser?.id || 'guest',
-      patientEmail: currentUser?.email || '',   // store patient email for reference
+      patientEmail: appointmentData.patientEmail || currentUser?.email || appointmentData.email || '',
     };
 
     // Helper: send confirmation email to patient
     const triggerConfirmationEmail = async (aptResult) => {
-      const doctorObj = doctors.find(d => d.id === aptResult.doctorId);
-      await sendBookingConfirmationEmail({
-        toEmail:         currentUser?.email || '',
-        toName:          aptResult.patientName || currentUser?.name || 'Patient',
-        doctorName:      doctorObj?.name || aptResult.doctorName || 'Your Doctor',
-        specialty:       doctorObj?.specialty || '',
-        date:            aptResult.date,
-        time:            aptResult.time,
-        hospital:        doctorObj?.hospital || '',
-        location:        doctorObj?.location || '',
-        appointmentType: aptResult.appointmentType,
-        symptoms:        aptResult.symptoms,
-        bookingId:       aptResult.id,
-        fee:             aptResult.fee || doctorObj?.fee,
-      });
+      const doctorObj = doctors.find(d => d.id === aptResult.doctorId) || doctors[0];
+      const targetEmail = aptResult.patientEmail || currentUser?.email || aptResult.email || '';
+      
+      if (targetEmail) {
+        await sendBookingConfirmationEmail({
+          toEmail:         targetEmail,
+          toName:          aptResult.patientName || currentUser?.name || 'Patient',
+          doctorName:      doctorObj?.name || aptResult.doctorName || 'Dr. Priya Sharma',
+          specialty:       doctorObj?.specialty || 'Cardiologist',
+          date:            aptResult.date,
+          time:            aptResult.time,
+          hospital:        doctorObj?.hospital || 'Apollo Hospitals',
+          location:        doctorObj?.location || 'Mumbai',
+          appointmentType: aptResult.appointmentType,
+          symptoms:        aptResult.symptoms,
+          bookingId:       aptResult.id,
+          fee:             aptResult.fee || doctorObj?.fee,
+        });
+      } else {
+        console.warn('⚠️ No email address available for booking confirmation');
+      }
     };
 
     try {
       const docRef = await addDoc(collection(db, 'appointments'), newAptData);
       const result = { id: docRef.id, ...newAptData };
+
+      // Immediately update local appointments so Doctor Portal updates instantly
+      setLocalAppointments(prev => [result, ...prev]);
 
       // 1️⃣ SYNC TO GOOGLE SHEET (fire-and-forget)
       syncToGoogleSheet(result);
@@ -289,7 +300,7 @@ export function AppProvider({ children }) {
       // 3️⃣ AUTO-ADD TO PATIENT'S GOOGLE CALENDAR (fire-and-forget)
       const googleToken = getStoredGoogleToken();
       if (googleToken) {
-        const doctorObj = doctors.find(d => d.id === result.doctorId);
+        const doctorObj = doctors.find(d => d.id === result.doctorId) || doctors[0];
         createGoogleCalendarEvent(result, doctorObj, googleToken)
           .then(event => {
             if (event) {

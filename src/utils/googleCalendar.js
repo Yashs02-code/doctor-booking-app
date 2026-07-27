@@ -103,11 +103,12 @@ export async function createGoogleCalendarEvent(appointment, doctor, accessToken
   const endDT   = addOneHour(startDT);
 
   const eventBody = {
-    summary:  `🏥 Medical Appointment – ${doctorName}`,
+    summary:  `⏳ Appointment Booked (Pending Approval) – ${doctorName}`,
     location: `${hospital}, ${location}`,
     description: [
-      `MEDI AI — APPOINTMENT CONFIRMATION`,
+      `MEDI AI — APPOINTMENT REQUEST (PENDING DOCTOR APPROVAL)`,
       ``,
+      `STATUS         : PENDING DOCTOR APPROVAL ⏳`,
       `👤 Patient      : ${patientName}`,
       `👨‍⚕️ Doctor       : ${doctorName} (${specialty})`,
       `📋 Type         : ${appointmentType || 'Consultation'}`,
@@ -116,7 +117,7 @@ export async function createGoogleCalendarEvent(appointment, doctor, accessToken
       ``,
       `🆔 Booking ID   : ${(id || '').slice(-8).toUpperCase()}`,
       ``,
-      `Booked via Medi AI ✅`,
+      `Please wait for doctor confirmation via Medi AI.`,
     ].join('\n'),
     start: { dateTime: startDT, timeZone: TIMEZONE },
     end:   { dateTime: endDT,   timeZone: TIMEZONE },
