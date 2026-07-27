@@ -43,17 +43,33 @@
  */
 function buildEmailHTML({
   toName, doctorName, specialty, date, time,
-  hospital, location, appointmentType, symptoms, bookingId, fee,
+  hospital, location, appointmentType, symptoms, bookingId, fee, isConfirmed,
 }) {
+  const headerBg = isConfirmed
+    ? 'linear-gradient(135deg, #10b981, #059669)'
+    : 'linear-gradient(135deg, #f59e0b, #2563eb)';
+  const headerTitle = isConfirmed
+    ? '✅ Appointment Confirmed!'
+    : '⏳ Appointment Booked (Pending Approval)';
+  const statusLine = isConfirmed
+    ? `<p style="margin: 5px 0; color: #059669; font-weight: bold;">Status: ✅ CONFIRMED by Doctor</p>`
+    : `<p style="margin: 5px 0; color: #d97706; font-weight: bold;">Status: Waiting for doctor approval</p>`;
+  const bodyMsg = isConfirmed
+    ? `Your appointment with <strong>${doctorName}</strong> has been <strong>Confirmed</strong> by the doctor. Please arrive on time.`
+    : `Your appointment request has been successfully submitted via <strong>Medi AI</strong>. Your booking is currently <strong>Pending Doctor Approval</strong>.`;
+  const footerMsg = isConfirmed
+    ? `Reminders will be sent 24h &amp; 1h before your visit.`
+    : `You will receive a notification once the doctor approves your request.`;
+
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden;">
-      <div style="background: linear-gradient(135deg, #f59e0b, #2563eb); color: white; padding: 30px; text-align: center;">
-        <h2 style="margin: 0;">⏳ Appointment Booked (Pending Approval)</h2>
+      <div style="background: ${headerBg}; color: white; padding: 30px; text-align: center;">
+        <h2 style="margin: 0;">${headerTitle}</h2>
         <p style="opacity: 0.9;">Booking Reference: ${bookingId}</p>
       </div>
       <div style="padding: 30px; color: #333;">
         <p>Hi ${toName},</p>
-        <p>Your appointment request has been successfully submitted via <strong>Medi AI</strong>. Your booking is currently <strong>Pending Doctor Approval</strong>.</p>
+        <p>${bodyMsg}</p>
         <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0; color: #2563eb;">${doctorName}</h3>
           <p style="margin: 5px 0;"><strong>Specialty:</strong> ${specialty}</p>
@@ -62,9 +78,9 @@ function buildEmailHTML({
           <p style="margin: 5px 0;"><strong>Venue:</strong> ${hospital}, ${location}</p>
           <p style="margin: 5px 0;"><strong>Type:</strong> ${appointmentType || 'Consultation'}</p>
           <p style="margin: 5px 0;"><strong>Fee:</strong> ${fee || 'As discussed'}</p>
-          <p style="margin: 5px 0; color: #d97706; font-weight: bold;">Status: Waiting for doctor approval</p>
+          ${statusLine}
         </div>
-        <p>You will receive a notification once the doctor approves your request.</p>
+        <p>${footerMsg}</p>
       </div>
       <div style="background: #0f172a; color: #cbd5e1; padding: 20px; text-align: center; font-size: 12px;">
         &copy; 2026 Medi AI Clinic | Autonomous Healthcare Systems
@@ -96,7 +112,7 @@ export async function sendBookingConfirmationEmail(params) {
       if (relayRes.ok) {
         const data = await relayRes.json();
         console.log('✅ Confirmation email sent via Relay | messageId:', data.messageId);
-        toast.success('Appointment email sent (Pending Doctor Approval)! 📧');
+        toast.success(params.isConfirmed ? 'Appointment confirmed! Email sent to patient 📧' : 'Booking email sent (Pending Approval)! 📧');
         return true;
       } else {
         console.warn('⚠️ Serverless relay returned non-OK status. Trying direct fallback...');
@@ -119,7 +135,9 @@ export async function sendBookingConfirmationEmail(params) {
     const body = {
       sender: { name: import.meta.env.VITE_BREVO_SENDER_NAME || 'Medi AI', email: BREVO_SENDER },
       to: [{ email: params.toEmail, name: params.toName || 'Patient' }],
-      subject: `⏳ Appointment Booked (Pending Approval) — ${params.doctorName}`,
+      subject: params.isConfirmed
+        ? `✅ Appointment Confirmed — ${params.doctorName} on ${params.date || ''}`
+        : `⏳ Appointment Booked (Pending Approval) — ${params.doctorName}`,
       htmlContent: buildEmailHTML({
         ...params,
         bookingId: (params.bookingId || '').slice(-8).toUpperCase()

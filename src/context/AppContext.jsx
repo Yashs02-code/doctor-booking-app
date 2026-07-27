@@ -387,6 +387,7 @@ export function AppProvider({ children }) {
     const apt = allAppointments.find(a => a.id === aptId);
     if (!apt) return;
 
+    // Update Firestore or local state
     if (aptId.startsWith('local_')) {
       setLocalAppointments(prev => prev.map(a => a.id === aptId ? { ...a, status: newStatus } : a));
     } else {
@@ -395,14 +396,43 @@ export function AppProvider({ children }) {
         await updateDoc(aptRef, { status: newStatus });
       } catch (e) {
         console.error("Error updating status: ", e);
+        // Also update local state so UI reflects change even if Firestore fails
+        setLocalAppointments(prev => {
+          const exists = prev.find(a => a.id === aptId);
+          if (exists) return prev.map(a => a.id === aptId ? { ...a, status: newStatus } : a);
+          return [{ ...apt, status: newStatus }, ...prev];
+        });
       }
     }
+
+    // Also force-update the Firestore appointments array in local state for instant UI
+    setAppointments(prev => prev.map(a => a.id === aptId ? { ...a, status: newStatus } : a));
 
     // SYNC UPDATE TO GOOGLE SHEET
     syncToGoogleSheet({ ...apt, status: newStatus });
     
     if (newStatus === 'confirmed') {
       toast.success("Appointment accepted! ✅");
+      // Send acceptance confirmation email to patient
+      const doctorObj = doctors.find(d => d.id === apt.doctorId) || doctors[0];
+      const patientEmail = apt.patientEmail || apt.email || '';
+      if (patientEmail) {
+        sendBookingConfirmationEmail({
+          toEmail:         patientEmail,
+          toName:          apt.patientName || 'Patient',
+          doctorName:      doctorObj?.name || apt.doctorName || 'Dr. Priya Sharma',
+          specialty:       doctorObj?.specialty || 'Cardiologist',
+          date:            apt.date,
+          time:            apt.time,
+          hospital:        doctorObj?.hospital || 'Apollo Hospitals',
+          location:        doctorObj?.location || 'Mumbai',
+          appointmentType: apt.appointmentType,
+          symptoms:        apt.symptoms,
+          bookingId:       apt.id,
+          fee:             apt.fee || doctorObj?.fee,
+          isConfirmed:     true,
+        }).catch(err => console.error('Acceptance email error:', err));
+      }
     } else if (newStatus === 'rejected') {
       toast.error("Appointment rejected. ❌");
     }

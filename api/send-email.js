@@ -13,7 +13,7 @@
 /** Build a beautiful HTML confirmation email */
 function buildEmailHTML({
   toName, doctorName, specialty, date, time,
-  hospital, location, appointmentType, symptoms, bookingId, fee,
+  hospital, location, appointmentType, symptoms, bookingId, fee, isConfirmed,
 }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -26,13 +26,13 @@ function buildEmailHTML({
   <div style="max-width:560px;margin:32px auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(37,99,235,0.15);">
 
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#f59e0b 0%,#2563eb 100%);padding:36px 32px;text-align:center;">
+    <div style="background:linear-gradient(135deg,${isConfirmed ? '#10b981 0%,#059669' : '#f59e0b 0%,#2563eb'} 100%);padding:36px 32px;text-align:center;">
       <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:12px;">
         <div style="width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;">🏥</div>
         <span style="font-size:26px;font-weight:900;color:white;letter-spacing:-0.5px;">Medi AI</span>
       </div>
       <div style="background:rgba(255,255,255,0.2);display:inline-block;padding:6px 18px;border-radius:20px;margin-top:4px;">
-        <span style="color:white;font-size:13px;font-weight:700;letter-spacing:1px;">⏳ APPOINTMENT BOOKED — PENDING DOCTOR APPROVAL</span>
+        <span style="color:white;font-size:13px;font-weight:700;letter-spacing:1px;">${isConfirmed ? '✅ APPOINTMENT CONFIRMED' : '⏳ APPOINTMENT BOOKED — PENDING DOCTOR APPROVAL'}</span>
       </div>
     </div>
 
@@ -40,7 +40,9 @@ function buildEmailHTML({
     <div style="background:white;padding:36px 32px;">
       <p style="margin:0 0 8px;font-size:20px;font-weight:800;color:#0f172a;">Hi ${toName}! 👋</p>
       <p style="margin:0 0 28px;font-size:15px;color:#64748b;line-height:1.6;">
-        Your appointment has been successfully submitted through Medi AI. It is currently <strong>Pending Doctor Approval</strong>. Please await final confirmation from the doctor.
+        ${isConfirmed
+          ? `Your appointment with <strong>${doctorName}</strong> has been <strong style="color:#059669;">CONFIRMED</strong> by the doctor. Please arrive 10 minutes early.`
+          : 'Your appointment has been successfully submitted through Medi AI. It is currently <strong>Pending Doctor Approval</strong>. Please await final confirmation from the doctor.'}
       </p>
 
       <!-- Appointment Card -->
@@ -164,7 +166,7 @@ export default async function handler(req, res) {
   const {
     toEmail, toName, doctorName, specialty,
     date, time, hospital, location,
-    appointmentType, symptoms, bookingId, fee,
+    appointmentType, symptoms, bookingId, fee, isConfirmed,
   } = req.body || {};
 
   if (!toEmail) {
@@ -198,7 +200,7 @@ export default async function handler(req, res) {
     doctorName, specialty,
     date: formattedDate, time: formattedTime,
     hospital, location, appointmentType,
-    symptoms, bookingId: shortId, fee: feeStr,
+    symptoms, bookingId: shortId, fee: feeStr, isConfirmed,
   });
 
   // --- Call Brevo API ---
@@ -213,7 +215,9 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         sender: { name: BREVO_SENDER_NAME, email: BREVO_SENDER_EMAIL },
         to:     [{ email: toEmail, name: toName || 'Patient' }],
-        subject: `⏳ Appointment Booked (Pending Approval) — ${doctorName} on ${formattedDate}`,
+        subject: isConfirmed
+          ? `✅ Appointment Confirmed — ${doctorName} on ${formattedDate}`
+          : `⏳ Appointment Booked (Pending Approval) — ${doctorName} on ${formattedDate}`,
         htmlContent,
         tags: ['appointment-confirmation', 'medi-ai'],
       }),

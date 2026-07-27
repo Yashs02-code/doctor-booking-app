@@ -377,8 +377,7 @@ export default function Confirmation() {
             </motion.button>
           </div>
 
-          {/* ── Smart Scheduling Status Card (patients only) ── */}
-          {/* ── Smart Scheduling Status Card (patients only) ── */}
+          {/* ── Google Calendar auto-synced silently on booking via AppContext OAuth flow ── */}
           {currentUser?.role === 'patient' && (
             <div style={{
               borderRadius: 20,
@@ -386,53 +385,26 @@ export default function Confirmation() {
               background: darkMode ? 'rgba(245,158,11,0.05)' : 'rgba(245,158,11,0.03)',
               padding: '20px',
               display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
-              textAlign: 'center'
+              alignItems: 'center',
+              gap: 14,
+              textAlign: 'left'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: '#f59e0b', color: 'white',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(245,158,11,0.3)'
-                }}>
-                   <Calendar size={20} />
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+                background: '#f59e0b', color: 'white',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(245,158,11,0.3)'
+              }}>
+                <Calendar size={22} />
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 15, color: darkMode ? '#fcd34d' : '#854d0e' }}>
+                  ⏳ Pending Doctor Approval
                 </div>
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontWeight: 800, fontSize: 15, color: darkMode ? '#fcd34d' : '#854d0e' }}>
-                    Pending Doctor Approval ⏳
-                  </div>
-                  <div style={{ fontSize: 12, color: darkMode ? '#94a3b8' : '#64748b', fontWeight: 500 }}>
-                    Add this appointment request to your Google Calendar
-                  </div>
+                <div style={{ fontSize: 12, color: darkMode ? '#94a3b8' : '#64748b', fontWeight: 500, marginTop: 3 }}>
+                  Your appointment request has been added to your Google Calendar automatically. You'll receive an email once the doctor confirms.
                 </div>
               </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  const startStr = (apt.date || '2026-03-28').replace(/-/g, '') + 'T' + (apt.time || '10:00').replace(':', '') + '00';
-                  const [h, m] = (apt.time || '10:00').split(':').map(Number);
-                  const endH = String((h + 1) % 24).padStart(2, '0');
-                  const endStr = (apt.date || '2026-03-28').replace(/-/g, '') + 'T' + endH + String(m).padStart(2, '0') + '00';
-                  
-                  const title = encodeURIComponent(`⏳ Appointment Booked (Pending Approval) – ${doctor.name}`);
-                  const details = encodeURIComponent(`STATUS: PENDING DOCTOR APPROVAL ⏳\n\nPatient: ${apt.patientName || 'Patient'}\nDoctor: ${doctor.name} (${doctor.specialty})\nVenue: ${doctor.hospital}, ${doctor.location}\nBooking ID: ${(apt.id || '').slice(-8).toUpperCase()}\n\nPlease await doctor confirmation via Medi AI.`);
-                  const location = encodeURIComponent(`${doctor.hospital}, ${doctor.location}`);
-
-                  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startStr}/${endStr}&details=${details}&location=${location}`;
-                  window.open(calendarUrl, '_blank');
-                }}
-                style={{
-                  padding: '12px 18px', borderRadius: 12, border: 'none',
-                  background: '#2563eb', color: 'white', fontWeight: 700, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13,
-                  marginTop: 6
-                }}
-              >
-                <Calendar size={16} /> 📅 Add to Google Calendar (Real-time)
-              </motion.button>
             </div>
           )}
           
