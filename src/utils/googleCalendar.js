@@ -19,8 +19,9 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-const CALENDAR_API = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
-const TIMEZONE     = 'Asia/Kolkata';
+const CALENDAR_API =
+  "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+const TIMEZONE = "Asia/Kolkata";
 
 /**
  * Saves the Google OAuth access token to sessionStorage with its expiry.
@@ -31,9 +32,9 @@ const TIMEZONE     = 'Asia/Kolkata';
 export function saveGoogleAccessToken(accessToken) {
   if (!accessToken) return;
   const expiresAt = Date.now() + 55 * 60 * 1000; // 55-min safety margin (token lasts 60 min)
-  sessionStorage.setItem('medi_g_token', accessToken);
-  sessionStorage.setItem('medi_g_token_exp', expiresAt.toString());
-  console.log('✅ Google Calendar access token saved (expires in ~55 min)');
+  sessionStorage.setItem("medi_g_token", accessToken);
+  sessionStorage.setItem("medi_g_token_exp", expiresAt.toString());
+  console.log("✅ Google Calendar access token saved (expires in ~55 min)");
 }
 
 /**
@@ -41,8 +42,11 @@ export function saveGoogleAccessToken(accessToken) {
  * @returns {string|null} The access token, or null if expired/missing.
  */
 export function getStoredGoogleToken() {
-  const token   = sessionStorage.getItem('medi_g_token');
-  const expiry  = parseInt(sessionStorage.getItem('medi_g_token_exp') || '0', 10);
+  const token = sessionStorage.getItem("medi_g_token");
+  const expiry = parseInt(
+    sessionStorage.getItem("medi_g_token_exp") || "0",
+    10,
+  );
   if (!token || Date.now() >= expiry) return null;
   return token;
 }
@@ -51,17 +55,17 @@ export function getStoredGoogleToken() {
  * Clears the stored Google access token (call on logout).
  */
 export function clearGoogleToken() {
-  sessionStorage.removeItem('medi_g_token');
-  sessionStorage.removeItem('medi_g_token_exp');
+  sessionStorage.removeItem("medi_g_token");
+  sessionStorage.removeItem("medi_g_token_exp");
 }
 
 /**
  * Formats "2026-04-15" + "10:30" → "2026-04-15T10:30:00"
  */
 function buildDateTimeString(date, time) {
-  const [year, month, day] = (date || '').split('-');
-  const [hour, minute]     = (time || '09:00').split(':').map(Number);
-  const pad = (n) => String(n).padStart(2, '0');
+  const [year, month, day] = (date || "").split("-");
+  const [hour, minute] = (time || "09:00").split(":").map(Number);
+  const pad = (n) => String(n).padStart(2, "0");
   return `${year}-${month}-${day}T${pad(hour)}:${pad(minute)}:00`;
 }
 
@@ -69,15 +73,15 @@ function buildDateTimeString(date, time) {
  * Adds 1 hour to a datetime string "2026-04-15T10:30:00" → "2026-04-15T11:30:00"
  */
 function addOneHour(dtStr) {
-  const [datePart, timePart] = (dtStr || '').split('T');
+  const [datePart, timePart] = (dtStr || "").split("T");
   if (!datePart || !timePart) return dtStr;
-  const [year, month, day] = datePart.split('-').map(Number);
-  const [hour, minute, second] = timePart.split(':').map(Number);
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute, second] = timePart.split(":").map(Number);
 
   // Month is 0-indexed in JS Date constructor, using explicit parameters prevents cross-browser string parsing issues
   const d = new Date(year, month - 1, day, hour, minute, second || 0);
   d.setHours(d.getHours() + 1);
-  const pad = (n) => String(n).padStart(2, '0');
+  const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
 }
 
@@ -90,20 +94,31 @@ function addOneHour(dtStr) {
  * @param {string} accessToken - Google OAuth access token (from Google Sign-In)
  * @returns {Promise<Object|null>} Created event object or null on failure
  */
-export async function createGoogleCalendarEvent(appointment, doctor, accessToken) {
+export async function createGoogleCalendarEvent(
+  appointment,
+  doctor,
+  accessToken,
+) {
   if (!accessToken) {
-    console.warn('⚠️ No Google access token — skipping Google Calendar sync');
+    console.warn("⚠️ No Google access token — skipping Google Calendar sync");
     return null;
   }
 
-  const { date, time, patientName, appointmentType, symptoms, id } = appointment || {};
-  const { name: doctorName = 'Doctor', specialty = '', hospital = 'Medi Clinic', location = 'Clinic', fee = '' } = doctor || {};
+  const { date, time, patientName, appointmentType, symptoms, id } =
+    appointment || {};
+  const {
+    name: doctorName = "Doctor",
+    specialty = "",
+    hospital = "Medi Clinic",
+    location = "Clinic",
+    fee = "",
+  } = doctor || {};
 
   const startDT = buildDateTimeString(date, time);
-  const endDT   = addOneHour(startDT);
+  const endDT = addOneHour(startDT);
 
   const eventBody = {
-    summary:  `⏳ Appointment Booked (Pending Approval) – ${doctorName}`,
+    summary: `⏳ Appointment Booked (Pending Approval) – ${doctorName}`,
     location: `${hospital}, ${location}`,
     description: [
       `MEDI AI — APPOINTMENT REQUEST (PENDING DOCTOR APPROVAL)`,
@@ -111,57 +126,68 @@ export async function createGoogleCalendarEvent(appointment, doctor, accessToken
       `STATUS         : PENDING DOCTOR APPROVAL ⏳`,
       `👤 Patient      : ${patientName}`,
       `👨‍⚕️ Doctor       : ${doctorName} (${specialty})`,
-      `📋 Type         : ${appointmentType || 'Consultation'}`,
-      `🩺 Symptoms     : ${symptoms || 'General check-up'}`,
-      `💰 Fee          : ${fee ? '₹' + fee : 'As discussed'}`,
+      `📋 Type         : ${appointmentType || "Consultation"}`,
+      `🩺 Symptoms     : ${symptoms || "General check-up"}`,
+      `💰 Fee          : ${fee ? "₹" + fee : "As discussed"}`,
       ``,
-      `🆔 Booking ID   : ${(id || '').slice(-8).toUpperCase()}`,
+      `🆔 Booking ID   : ${(id || "").slice(-8).toUpperCase()}`,
       ``,
       `Please wait for doctor confirmation via Medi AI.`,
-    ].join('\n'),
+    ].join("\n"),
     start: { dateTime: startDT, timeZone: TIMEZONE },
-    end:   { dateTime: endDT,   timeZone: TIMEZONE },
-    colorId: '9',  // Blueberry (Google Calendar color)
+    end: { dateTime: endDT, timeZone: TIMEZONE },
+    colorId: "9", // Blueberry (Google Calendar color)
     reminders: {
       useDefault: false,
       overrides: [
-        { method: 'email', minutes: 24 * 60 },  // 📧 24 hours before
-        { method: 'email', minutes: 60 },        // 📧 1 hour before
-        { method: 'popup', minutes: 60 },        // 🔔 1 hour popup
-        { method: 'popup', minutes: 15 },        // 🔔 15-min popup
+        { method: "email", minutes: 24 * 60 }, // 📧 24 hours before
+        { method: "email", minutes: 60 }, // 📧 1 hour before
+        { method: "popup", minutes: 60 }, // 🔔 1 hour popup
+        { method: "popup", minutes: 15 }, // 🔔 15-min popup
       ],
     },
   };
 
   try {
     const response = await fetch(CALENDAR_API, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        Authorization:  `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(eventBody),
     });
 
-    if (!response.ok) {
-      const errData = await response.json();
-      const errMsg  = errData?.error?.message || response.statusText;
-      console.error('❌ Google Calendar API error:', errMsg, '| Status:', response.status);
+    console.log("HTTP Status:", response.status);
+    console.log("Response OK:", response.ok);
 
-      // 401 = token expired, 403 = insufficient scope
+    const json = await response.json();
+
+    console.log("================================");
+    console.log("HTTP Status:", response.status);
+    console.log("Response OK:", response.ok);
+    console.log("Calendar Response:");
+    console.log(json);
+    console.log("================================");
+
+    if (!response.ok) {
+      console.error("❌ Google Calendar API Error");
+      console.error(json);
+
       if (response.status === 401) {
         clearGoogleToken();
-        console.warn('Google access token expired — cleared from storage');
+        console.warn("Google access token expired");
       }
+
       return null;
     }
 
-    const created = await response.json();
-    console.log('✅ Google Calendar event created:', created.htmlLink);
-    return created;
+    console.log("✅ Google Calendar Event Created");
+    console.log(json);
 
+    return json;
   } catch (err) {
-    console.error('❌ Google Calendar fetch failed:', err.message);
+    console.error("❌ Google Calendar fetch failed:", err.message);
     return null;
   }
 }
