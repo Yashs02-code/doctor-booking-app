@@ -21,8 +21,11 @@ import {
 } from "../data/dummyData";
 import toast from "react-hot-toast";
 import { sendBookingConfirmationEmail } from "../utils/emailNotification";
+import { triggerPatientCall } from "../utils/callingAgent";
 import {
   createGoogleCalendarEvent,
+  updateGoogleCalendarEvent,
+  deleteGoogleCalendarEvent,
   getStoredGoogleToken,
 } from "../utils/googleCalendar";
 
@@ -359,7 +362,22 @@ export function AppProvider({ children }) {
         console.error("Email notification error:", err),
       );
 
-      // 3️⃣ AUTO-ADD TO PATIENT'S GOOGLE CALENDAR (fire-and-forget)
+      // 3️⃣ TRIGGER OMNIDIMENSION AI CALLING AGENT (fire-and-forget)
+      const doctorForCall = doctors.find((d) => d.id === result.doctorId) || doctors[0];
+      triggerPatientCall({
+        patientPhone: result.patientPhone || currentUser?.phone || currentUser?.mobile || "9876543210",
+        patientName: result.patientName || currentUser?.name || "Patient",
+        doctorName: doctorForCall?.name || result.doctorName || "Dr. Priya Sharma",
+        specialty: doctorForCall?.specialty || "Cardiologist",
+        date: result.date,
+        time: result.time,
+        hospital: doctorForCall?.hospital || "Apollo Hospitals",
+        symptoms: result.symptoms,
+        status: "pending",
+        callType: "new_booking"
+      }).catch((err) => console.error("AI Voice Call error:", err));
+
+      // 4️⃣ AUTO-ADD TO PATIENT'S GOOGLE CALENDAR (fire-and-forget)
       const googleToken = getStoredGoogleToken();
 
       console.log("========== GOOGLE CALENDAR ==========");
@@ -387,6 +405,11 @@ export function AppProvider({ children }) {
         console.log(event);
 
         if (event) {
+          await updateDoc(doc(db, "appointments", result.id), {
+            calendarEventId: event.id,
+          });
+
+          console.log("Saved Calendar Event ID:", event.id);
           toast.success("Calendar Event Created ✅");
         } else {
           toast.error("Calendar Event FAILED ❌");
@@ -450,7 +473,21 @@ export function AppProvider({ children }) {
     }
 
     // SYNC UPDATE TO GOOGLE SHEET
-    syncToGoogleSheet({ ...apt, status: "cancelled" });
+    syncToGoogleSheet({ ...apt, status: "cancelled",calendarEventId:null});
+
+    const googleToken = getStoredGoogleToken();
+
+if (
+    googleToken &&
+    apt.calendarEventId
+) {
+    await deleteGoogleCalendarEvent(
+        apt.calendarEventId,
+        googleToken
+    );
+
+    console.log("Calendar Event Deleted");
+}
   };
 
   const rescheduleAppointment = async (aptId, newDate, newTime) => {
@@ -509,7 +546,45 @@ export function AppProvider({ children }) {
     );
 
     // SYNC UPDATE TO GOOGLE SHEET
-    syncToGoogleSheet({ ...apt, status: newStatus });
+    syncToGoogleSheet({ ...apt, status: newStatus, calendarEventId:null });
+
+    const googleToken = getStoredGoogleToken();
+
+if (
+  googleToken &&
+  apt.calendarEventId &&
+  newStatus === "confirmed"
+) {
+  const doctorObj =
+    doctors.find((d) => d.id === apt.doctorId) || doctors[0];
+
+  const updatedAppointment = {
+    id: apt.id,
+    patientId: apt.patientId,
+    patientName: apt.patientName,
+    patientEmail: apt.patientEmail,
+    doctorId: apt.doctorId,
+    doctorName: apt.doctorName,
+    doctorEmail: apt.doctorEmail,
+    appointmentType: apt.appointmentType,
+    symptoms: apt.symptoms,
+    date: apt.date,
+    time: apt.time,
+    fee: apt.fee,
+    bookedAt: apt.bookedAt,
+    calendarEventId: apt.calendarEventId,
+    status: newStatus,
+  };
+
+  await updateGoogleCalendarEvent(
+    apt.calendarEventId,
+    googleToken,
+    updatedAppointment,
+    doctorObj
+  );
+
+  console.log("✅ Calendar updated after doctor approval");
+}
 
     if (newStatus === "confirmed") {
       toast.success("Appointment accepted! ✅");
@@ -534,6 +609,20 @@ export function AppProvider({ children }) {
           isConfirmed: true,
         }).catch((err) => console.error("Acceptance email error:", err));
       }
+
+      // Trigger Omnidimension AI voice call confirmation to patient
+      triggerPatientCall({
+        patientPhone: apt.patientPhone || apt.phone || apt.mobile || "9876543210",
+        patientName: apt.patientName || "Patient",
+        doctorName: doctorObj?.name || apt.doctorName || "Dr. Priya Sharma",
+        specialty: doctorObj?.specialty || "Cardiologist",
+        date: apt.date,
+        time: apt.time,
+        hospital: doctorObj?.hospital || "Apollo Hospitals",
+        symptoms: apt.symptoms,
+        status: "confirmed",
+        callType: "doctor_approval_confirmation"
+      }).catch((err) => console.error("Acceptance AI Call error:", err));
     } else if (newStatus === "rejected") {
       toast.error("Appointment rejected. ❌");
     }

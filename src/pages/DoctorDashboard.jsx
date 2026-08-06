@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, Users, Award, Star, ChevronLeft, ChevronRight, Plus, Filter, Check, X, TrendingUp, Brain, Zap, RefreshCw, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Users, Award, Star, ChevronLeft, ChevronRight, Plus, Filter, Check, X, TrendingUp, Brain, Zap, RefreshCw, AlertCircle, Phone } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useApp } from '../context/AppContext';
+import { triggerPatientCall } from '../utils/callingAgent';
 import { useTranslation } from 'react-i18next';
 import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameDay } from 'date-fns';
 import PageWrapper from '../components/PageWrapper';
@@ -233,7 +234,24 @@ export default function DoctorDashboard() {
                            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>{apt.appointmentType} • {apt.symptoms}</div>
                          </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 10 }}>
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                          title="Call Patient with Omnidimension AI Voice Agent"
+                          onClick={() => triggerPatientCall({
+                            patientPhone: apt.patientPhone || apt.phone || apt.mobile || "9876543210",
+                            patientName: apt.patientName || "Patient",
+                            doctorName: doctorProfile?.name || apt.doctorName || "Dr. Priya Sharma",
+                            specialty: doctorProfile?.specialty || "Specialist",
+                            date: apt.date,
+                            time: apt.time,
+                            hospital: doctorProfile?.hospital || "Medi AI Clinic",
+                            symptoms: apt.symptoms,
+                            status: apt.status || 'pending',
+                            callType: 'manual_doctor_call'
+                          })}
+                          style={{ padding: '8px 12px', borderRadius: 12, border: '1px solid #6366f1', background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <Phone size={15} /> AI Call
+                        </motion.button>
                         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                           onClick={() => updateAppointmentStatus(apt.id, 'rejected')}
                           style={{ padding: '8px 16px', borderRadius: 12, border: '1.5px solid #ef4444', background: 'transparent', color: '#ef4444', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>

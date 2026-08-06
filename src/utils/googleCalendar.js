@@ -192,6 +192,96 @@ export async function createGoogleCalendarEvent(
   }
 }
 
+export async function updateGoogleCalendarEvent(
+  eventId,
+  accessToken,
+  appointment,
+  doctor,
+) {
+  if (!eventId || !accessToken) return null;
+
+  const body = {
+    summary:
+      appointment.status === "confirmed"
+        ? `✅ Appointment Confirmed - ${doctor.name}`
+        : `⏳ Appointment Pending - ${doctor.name}`,
+
+    location: `${doctor.hospital}, ${doctor.location}`,
+
+    description: `
+STATUS : ${appointment.status.toUpperCase()}
+
+Patient : ${appointment.patientName}
+
+Doctor : ${doctor.name}
+
+Speciality : ${doctor.specialty}
+
+Date : ${appointment.date}
+
+Time : ${appointment.time}
+
+Appointment Type : ${appointment.appointmentType}
+
+Symptoms : ${appointment.symptoms}
+`,
+
+    colorId: appointment.status === "confirmed" ? "2" : "9",
+  };
+
+  try {
+    const response = await fetch(`${CALENDAR_API}/${eventId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const json = await response.json();
+
+    if (!response.ok) {
+      console.error(json);
+      return null;
+    }
+
+    console.log("✅ Calendar Updated");
+
+    return json;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+export async function deleteGoogleCalendarEvent(eventId, accessToken) {
+  if (!eventId || !accessToken) {
+    console.warn("Missing eventId or accessToken");
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${CALENDAR_API}/${eventId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error("Failed to delete Calendar Event");
+      return false;
+    }
+
+    console.log("✅ Calendar Event Deleted");
+
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
 /**
  * ─────────────────────────────────────────────────────────────────────────────
  *  GOOGLE CLOUD CONSOLE — Required One-Time Setup
