@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, Activity, Calendar, MessageSquare, LayoutDashboard, TrendingUp, LogOut, User, Menu, X, Phone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
-import AIVoiceCallModal from './AIVoiceCallModal';
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
@@ -14,7 +13,6 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [voiceModalOpen, setVoiceModalOpen] = useState(false);
 
 
   const navItems = [
@@ -85,21 +83,6 @@ export default function Navbar() {
 
         {/* Right controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Voice Receptionist Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-            onClick={() => setVoiceModalOpen(true)}
-            title="Speak with Maya (AI Voice Receptionist)"
-            style={{
-              padding: '6px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
-              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              color: 'white', fontWeight: 700, fontSize: 13,
-              display: 'flex', alignItems: 'center', gap: 6,
-              boxShadow: '0 4px 12px rgba(37,99,235,0.3)',
-            }}
-          >
-            <Phone size={15} /> Voice Agent
-          </motion.button>
 
           {/* Dark mode */}
           <motion.button
@@ -285,7 +268,6 @@ export default function Navbar() {
         </AnimatePresence>,
         document.getElementById('navbar-portal-root')
       )}
-      <AIVoiceCallModal isOpen={voiceModalOpen} onClose={() => setVoiceModalOpen(false)} />
     </motion.nav>
   );
 }

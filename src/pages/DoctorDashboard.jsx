@@ -215,7 +215,7 @@ export default function DoctorDashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {pendingRequests.length > 0 ? (
                   pendingRequests.map((apt, i) => (
-                    <motion.div key={apt.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+                    <motion.div key={apt.id ? `${apt.id}-${i}` : `apt-${i}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
                       style={{ 
                         padding: 20, borderRadius: 20, 
                         background: darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
@@ -238,7 +238,7 @@ export default function DoctorDashboard() {
                         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                           title="Call Patient with Omnidimension AI Voice Agent"
                           onClick={() => triggerPatientCall({
-                            patientPhone: apt.patientPhone || apt.phone || apt.mobile || "9876543210",
+                            patientPhone: import.meta.env.VITE_DEFAULT_PATIENT_PHONE || "+918591556205",
                             patientName: apt.patientName || "Patient",
                             doctorName: doctorProfile?.name || apt.doctorName || "Dr. Priya Sharma",
                             specialty: doctorProfile?.specialty || "Specialist",

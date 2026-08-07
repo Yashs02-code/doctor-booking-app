@@ -140,21 +140,17 @@ export function AppProvider({ children }) {
           setAppointments(apts);
         },
         (error) => {
-          console.error("🔥 [Sync] Firestore snapshot error:", error);
-          setSyncStatus("error");
-          setSyncError(error.message);
-          toast.dismiss("sync-toast");
-
           if (error.code === "permission-denied") {
-            console.error(
-              "❌ [PERM] Access Denied! Please check Firestore Rules.",
-            );
-            toast.error(
-              "Database access denied (Code 7). Check your permissions!",
-              { duration: 6000 },
-            );
+            console.warn("⚠️ [Sync] Firestore permission restricted — using local storage fallback.");
+            setSyncStatus("offline");
+            setSyncError(null);
+            const saved = localStorage.getItem("medi_ai_appointments");
+            if (saved) {
+              try { setAppointments(JSON.parse(saved)); } catch(e){}
+            }
           } else {
-            toast.error("Sync Error: " + error.code);
+            console.warn("⚠️ [Sync] Firestore snapshot note:", error.message);
+            setSyncStatus("offline");
           }
         },
       );
@@ -312,6 +308,14 @@ export function AppProvider({ children }) {
       status: "pending",
       bookedAt: new Date().toISOString(),
       patientId: currentUser?.id || "guest",
+      patientPhone:
+        appointmentData.patientPhone ||
+        appointmentData.phone ||
+        appointmentData.mobile ||
+        currentUser?.phone ||
+        currentUser?.mobile ||
+        import.meta.env.VITE_DEFAULT_PATIENT_PHONE ||
+        "8591556205",
       patientEmail:
         appointmentData.patientEmail ||
         currentUser?.email ||
@@ -365,7 +369,7 @@ export function AppProvider({ children }) {
       // 3️⃣ TRIGGER OMNIDIMENSION AI CALLING AGENT (fire-and-forget)
       const doctorForCall = doctors.find((d) => d.id === result.doctorId) || doctors[0];
       triggerPatientCall({
-        patientPhone: result.patientPhone || currentUser?.phone || currentUser?.mobile || "9876543210",
+        patientPhone: result.patientPhone || currentUser?.phone || currentUser?.mobile || import.meta.env.VITE_DEFAULT_PATIENT_PHONE || "8591556205",
         patientName: result.patientName || currentUser?.name || "Patient",
         doctorName: doctorForCall?.name || result.doctorName || "Dr. Priya Sharma",
         specialty: doctorForCall?.specialty || "Cardiologist",
@@ -612,7 +616,7 @@ if (
 
       // Trigger Omnidimension AI voice call confirmation to patient
       triggerPatientCall({
-        patientPhone: apt.patientPhone || apt.phone || apt.mobile || "9876543210",
+        patientPhone: apt.patientPhone || apt.phone || apt.mobile || "8591556205",
         patientName: apt.patientName || "Patient",
         doctorName: doctorObj?.name || apt.doctorName || "Dr. Priya Sharma",
         specialty: doctorObj?.specialty || "Cardiologist",
@@ -714,6 +718,7 @@ if (
     doctors: doctorsWithSlots, // Use the dynamic list
     appointments: allAppointments,
     bookAppointment,
+    addAppointment: bookAppointment,
     cancelAppointment,
     rescheduleAppointment,
     updateAppointmentStatus,

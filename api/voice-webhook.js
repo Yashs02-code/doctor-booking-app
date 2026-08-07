@@ -62,7 +62,9 @@ export default async function handler(req, res) {
       // 📧 Trigger Brevo Email if email provided
       if (patientEmail) {
         try {
-          const emailRes = await fetch(`${req.headers.origin || 'http://localhost:5173'}/api/send-email`, {
+          const host = req.headers.host || 'localhost:3000';
+          const protocol = req.headers['x-forwarded-proto'] || 'http';
+          const emailRes = await fetch(`${protocol}://${host}/api/send-email`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

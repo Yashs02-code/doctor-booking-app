@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, Calendar, TrendingUp, Zap, ChevronRight, Clock, Users, Star, Activity, CheckCircle } from 'lucide-react';
+import { MessageSquare, Calendar, TrendingUp, Zap, ChevronRight, Clock, Users, Star, Activity, CheckCircle, Phone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 import PageWrapper from '../components/PageWrapper';
 import DoctorCard from '../components/DoctorCard';
 import { healthTips, specialties } from '../data/dummyData';
+import { triggerPatientCall } from '../utils/callingAgent';
 
 const liveStats = [
   { label: 'Appointments Booked', value: '12,480', icon: '📅', color: '#2563eb' },
@@ -127,6 +128,90 @@ export default function Home() {
                 display: 'flex', alignItems: 'center', gap: 8 }}>
               📊 {t('home.hero_view_insights')}
             </motion.button>
+          </div>
+        </motion.div>
+
+        {/* ─── 24/7 PATIENT AI VOICE CALLING BANNER ─── */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          style={{
+            ...card,
+            marginBottom: 48,
+            padding: '24px 30px',
+            background: darkMode
+              ? 'linear-gradient(135deg, rgba(37,99,235,0.25), rgba(124,58,237,0.25))'
+              : 'linear-gradient(135deg, #eff6ff, #f3e8ff)',
+            border: darkMode ? '1px solid rgba(99,102,241,0.35)' : '1px solid rgba(147,51,234,0.25)',
+            boxShadow: '0 16px 36px rgba(37,99,235,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 20
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flex: '1 1 340px' }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: 16,
+              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', boxShadow: '0 8px 20px rgba(37,99,235,0.35)',
+              flexShrink: 0
+            }}>
+              <Phone size={26} />
+            </div>
+            <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 10px', borderRadius: 20, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontSize: 12, fontWeight: 800, marginBottom: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }}></span>
+                24/7 PATIENT AI PHONE HOTLINE
+              </div>
+              <h3 style={{ fontSize: 19, fontWeight: 900, color: textPrimary, margin: '2px 0 4px', lineHeight: 1.2 }}>
+                📞 24/7 Phone Booking Available
+              </h3>
+              <p style={{ fontSize: 14, color: darkMode ? '#cbd5e1' : '#475569', margin: 0 }}>
+                Call our AI Receptionist anytime at <strong style={{ color: '#2563eb' }}>+91-85915-56205</strong> or click below for an instant call.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <motion.button
+              whileHover={{ scale: 1.04, boxShadow: '0 12px 30px rgba(37,99,235,0.4)' }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => {
+                triggerPatientCall({
+                  patientPhone: "+918591556205",
+                  patientName: currentUser?.name || "Patient",
+                  doctorName: "Dr. Priya Sharma",
+                  specialty: "Cardiologist",
+                  hospital: "Apollo Hospitals",
+                  callType: 'instant_homepage_call'
+                });
+              }}
+              style={{
+                padding: '12px 22px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                color: 'white', fontWeight: 800, fontSize: 14,
+                display: 'flex', alignItems: 'center', gap: 8,
+                boxShadow: '0 6px 20px rgba(37,99,235,0.3)'
+              }}
+            >
+              <Phone size={16} /> Request Instant AI Call
+            </motion.button>
+            <a
+              href="tel:+918591556205"
+              style={{
+                padding: '12px 18px', borderRadius: 14, textDecoration: 'none',
+                background: darkMode ? 'rgba(255,255,255,0.08)' : 'white',
+                color: textPrimary, fontWeight: 700, fontSize: 14,
+                border: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(148,163,184,0.3)',
+                display: 'flex', alignItems: 'center', gap: 6
+              }}
+            >
+              📞 Call +91-85915-56205
+            </a>
           </div>
         </motion.div>
 

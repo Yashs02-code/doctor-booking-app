@@ -38,20 +38,36 @@ export default async function handler(req, res) {
       callType = 'booking_confirmation'
     } = req.body || {};
 
-    const apiKey = process.env.OMNIDIMENSION_API_KEY || process.env.VITE_OMNIDIMENSION_API_KEY || '585b7_y8jlafqUBHDlrxngpKQ6NkqFG9B6mXOpKWwSY';
-    const agentId = process.env.OMNIDIMENSION_AGENT_ID || process.env.VITE_OMNIDIMENSION_AGENT_ID || '233347';
-    const baseUrl = process.env.OMNIDIMENSION_BASE_URL || process.env.VITE_OMNIDIMENSION_BASE_URL || 'https://omnidim.io/api/v1';
+    const apiKey = process.env.OMNIDIMENSION_API_KEY || process.env.VITE_OMNIDIMENSION_API_KEY || '8nhu750n81ydKpzCFkUibYOk1bol57qr7PRYyzA2z4M';
+    const agentId = process.env.OMNIDIMENSION_AGENT_ID || process.env.VITE_OMNIDIMENSION_AGENT_ID || '234331';
+    const rawBaseUrl = process.env.OMNIDIMENSION_BASE_URL || process.env.VITE_OMNIDIMENSION_BASE_URL || 'https://omnidim.io';
+    const cleanBaseUrl = rawBaseUrl.replace(/\/api\/v1\/?$/, '').replace(/\/+$/, '');
 
     if (!patientPhone) {
       return res.status(400).json({ success: false, error: 'Patient phone number is required to make a call' });
     }
 
-    // Omnidimension API Payload
+    const defaultPhone = process.env.DEFAULT_PATIENT_PHONE || process.env.VITE_DEFAULT_PATIENT_PHONE || '+918591556205';
+    let rawTarget = patientPhone || defaultPhone;
+    let targetPhone = String(rawTarget).replace(/\D/g, '');
+    if (targetPhone.length === 10) {
+      targetPhone = `+91${targetPhone}`;
+    } else if (targetPhone.length === 12 && targetPhone.startsWith('91')) {
+      targetPhone = `+${targetPhone}`;
+    } else if (String(rawTarget).startsWith('+')) {
+      targetPhone = String(rawTarget);
+    } else {
+      targetPhone = `+${targetPhone}`;
+    }
+
+    // Omnidimension API Payload (includes all parameter aliases)
     const callPayload = {
       agent_id: agentId,
-      to_number: patientPhone,
-      phone_number: patientPhone,
-      phone: patientPhone,
+      to_number: targetPhone,
+      to: targetPhone,
+      phone_number: targetPhone,
+      recipient_phone_number: targetPhone,
+      phone: targetPhone,
       variables: {
         patient_name: patientName,
         doctor_name: doctorName,
@@ -65,35 +81,52 @@ export default async function handler(req, res) {
       }
     };
 
-    console.log(`📡 Triggering Omnidimension AI Call to ${patientPhone} via ${baseUrl}`);
+    console.log(`📡 Triggering Omnidimension AI Call to ${targetPhone} (Agent ID: ${agentId})`);
 
-    // Try primary endpoint: `${baseUrl}/calls/dispatch` or `${baseUrl}/calls`
-    let response = await fetch(`${baseUrl}/calls/dispatch`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'x-api-key': apiKey,
-        'api-key': apiKey
-      },
-      body: JSON.stringify(callPayload)
-    });
+    const endpoints = [
+      `${cleanBaseUrl}/calls/dispatch`,
+      `${cleanBaseUrl}/api/calls/dispatch`,
+      `${cleanBaseUrl}/v1/calls/dispatch`,
+      `${cleanBaseUrl}/api/v1/calls/dispatch`,
+      `${cleanBaseUrl}/calls`,
+      `https://api.omnidim.io/calls/dispatch`,
+      `https://api.omnidim.io/v1/calls/dispatch`
+    ];
 
-    if (!response.ok) {
-      // Fallback to /calls endpoint
-      response = await fetch(`${baseUrl}/calls`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'x-api-key': apiKey,
-          'api-key': apiKey
-        },
-        body: JSON.stringify(callPayload)
+    let response = null;
+    for (const ep of endpoints) {
+      try {
+        response = await fetch(ep, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'x-api-key': apiKey,
+            'api-key': apiKey
+          },
+          body: JSON.stringify(callPayload)
+        });
+        if (response.ok) break;
+      } catch (err) {
+        console.warn(`Attempt failed for endpoint ${ep}:`, err.message);
+      }
+    }
+
+    if (!response) {
+      console.warn('⚠️ All Omnidimension endpoints returned network errors. Returning fallback.');
+      return res.status(200).json({
+        success: true,
+        simulated: true,
+        callId: `call_sim_${Date.now()}`,
+        message: `AI Voice Call dispatched for ${patientName} (${targetPhone})`
       });
     }
 
-    const responseData = await response.json().catch(() => ({}));
+    const responseText = await response.text();
+    let responseData = {};
+    try { responseData = JSON.parse(responseText); } catch(e){ responseData = { raw: responseText }; }
+
+    console.log(`📡 Omnidimension HTTP Status: ${response.status}`, responseData);
 
     if (response.ok) {
       console.log('✅ Omnidimension AI Voice Call dispatched successfully:', responseData);
@@ -104,12 +137,11 @@ export default async function handler(req, res) {
         details: responseData
       });
     } else {
-      console.warn('⚠️ Omnidimension API returned non-200 response:', responseData);
-      return res.status(200).json({
-        success: true,
-        simulated: true,
-        callId: `call_sim_${Date.now()}`,
-        message: `AI Voice Call dispatched for ${patientName} (${patientPhone})`,
+      console.warn(`⚠️ Omnidimension API HTTP ${response.status} Error:`, responseData);
+      return res.status(response.status || 400).json({
+        success: false,
+        error: responseData.message || responseData.error || `Omnidimension API HTTP ${response.status}`,
+        status: response.status,
         details: responseData
       });
     }

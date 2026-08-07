@@ -24,8 +24,23 @@ import { toast } from 'react-hot-toast';
  * @param {string} params.status       - 'pending' | 'confirmed' | 'rescheduled'
  * @returns {Promise<boolean>}
  */
+export function normalizePhoneNumber(rawPhone) {
+  if (!rawPhone) return '+918591556205';
+  let cleaned = String(rawPhone).replace(/\D/g, '');
+  if (cleaned.length === 10) {
+    return `+91${cleaned}`;
+  }
+  if (cleaned.length === 12 && cleaned.startsWith('91')) {
+    return `+${cleaned}`;
+  }
+  if (String(rawPhone).startsWith('+')) return String(rawPhone);
+  return `+${cleaned}`;
+}
+
 export async function triggerPatientCall(params) {
-  const phone = params.patientPhone || params.phone || params.mobile;
+  const defaultPhone = import.meta.env.VITE_DEFAULT_PATIENT_PHONE || '+918591556205';
+  const rawPhone = params.patientPhone || params.phone || params.mobile || defaultPhone;
+  const phone = normalizePhoneNumber(rawPhone);
   
   if (!phone) {
     console.warn('⚠️ No patient phone number provided — skipping AI voice call.');
@@ -58,9 +73,9 @@ export async function triggerPatientCall(params) {
     }
 
     // Attempt 2: Direct Client Fallback for local development (npm run dev)
-    const apiKey = import.meta.env.VITE_OMNIDIMENSION_API_KEY || '585b7_y8jlafqUBHDlrxngpKQ6NkqFG9B6mXOpKWwSY';
-    const agentId = import.meta.env.VITE_OMNIDIMENSION_AGENT_ID || '233347';
-    const baseUrl = import.meta.env.VITE_OMNIDIMENSION_BASE_URL || 'https://omnidim.io/api/v1';
+    const apiKey = import.meta.env.VITE_OMNIDIMENSION_API_KEY || '8nhu750n81ydKpzCFkUibYOk1bol57qr7PRYyzA2z4M';
+    const agentId = import.meta.env.VITE_OMNIDIMENSION_AGENT_ID || '234331';
+    const baseUrl = window.location.origin.includes('localhost') ? '/api/omnidim' : (import.meta.env.VITE_OMNIDIMENSION_BASE_URL || 'https://omnidim.io/api/v1');
 
     try {
       const callRes = await fetch(`${baseUrl}/calls/dispatch`, {
