@@ -4,6 +4,9 @@ const AppointmentSchema = new mongoose.Schema({
   patientId: { type: String, required: true },
   patientName: { type: String, required: true },
   patientEmail: { type: String, default: '' },
+  patientPhone: { type: String, default: '' },
+  age: { type: Number },
+  gender: { type: String, default: '' },
   doctorId: { type: String, required: true },
   doctorName: { type: String, default: '' },
   doctorEmail: { type: String, default: '' },
@@ -12,7 +15,7 @@ const AppointmentSchema = new mongoose.Schema({
   status: { 
     type: String, 
     enum: ['pending', 'confirmed', 'rejected', 'cancelled'], 
-    default: 'pending' 
+    default: 'confirmed' 
   },
   appointmentType: { type: String, default: 'Consultation' },
   symptoms: { type: String, default: '' },

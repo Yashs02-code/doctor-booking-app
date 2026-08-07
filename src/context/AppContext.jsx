@@ -169,13 +169,12 @@ export function AppProvider({ children }) {
       if (user) {
         // Fetch user profile from Firestore
         let role = "patient"; // Default
+        let userDocData = {};
         try {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) {
-            role = userDoc.data().role || "patient";
-          } else {
-            // New user or legacy user without profile, default to patient
-            // We set it later if it's a first-time Google login via UI
+            userDocData = userDoc.data() || {};
+            role = userDocData.role || "patient";
           }
         } catch (e) {
           console.error("Error fetching user profile:", e);
@@ -191,10 +190,10 @@ export function AppProvider({ children }) {
 
         setCurrentUser({
           id: user.uid,
-          name: user.displayName || "Demo User",
+          name: userDocData.name || user.displayName || "Patient",
           email: user.email,
-          phone: user.phoneNumber || "+91 98765 43210",
-          avatar: (user.displayName || user.email || "U")
+          phone: userDocData.phone || user.phoneNumber || "+918591556205",
+          avatar: (userDocData.name || user.displayName || user.email || "P")
             .charAt(0)
             .toUpperCase(),
           role: role,

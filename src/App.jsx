@@ -12,6 +12,7 @@ import LanguageSelect from './pages/LanguageSelect';
 import Auth from './pages/Auth';
 import Navbar from './components/Navbar';
 import DemoModeBanner from './components/DemoModeBanner';
+import GlobalAgenticRAGWidget from './components/GlobalAgenticRAGWidget';
 
 // Code-split: lazy load non-critical pages to reduce initial bundle
 const Home = lazy(() => import('./pages/Home'));
@@ -101,6 +102,7 @@ function AppRoutes() {
           </Routes>
         </AnimatePresence>
       </Suspense>
+      {!hideNav && <GlobalAgenticRAGWidget />}
       <Toaster
         position="top-right"
         toastOptions={{

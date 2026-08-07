@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, Calendar, TrendingUp, Zap, ChevronRight, Clock, Users, Star, Activity, CheckCircle, Phone } from 'lucide-react';
+import { MessageSquare, Calendar, TrendingUp, Zap, ChevronRight, Clock, Users, Star, Activity, CheckCircle, Phone, Sparkles, Search, Send } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 import PageWrapper from '../components/PageWrapper';
@@ -60,8 +60,33 @@ export default function Home() {
   const navigate = useNavigate();
   const [tipIdx, setTipIdx] = useState(0);
   const [statIdx, setStatIdx] = useState(0);
+  const [ragQuery, setRagQuery] = useState('');
+  const [ragLoading, setRagLoading] = useState(false);
+  const [ragResult, setRagResult] = useState(null);
+
   const upcoming = getUpcomingAppointments().slice(0, 2);
   const featuredDoctors = doctors.filter(d => d.available).slice(0, 8);
+
+  const handleHomeRAGSearch = async (e) => {
+    e?.preventDefault();
+    if (!ragQuery.trim()) return;
+    setRagLoading(true);
+    try {
+      const res = await fetch('/api/rag-agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: ragQuery }),
+      });
+      const data = await res.json();
+      setRagLoading(false);
+      if (data && data.reply) {
+        setRagResult(data);
+      }
+    } catch (err) {
+      console.error(err);
+      setRagLoading(false);
+    }
+  };
 
   useEffect(() => {
     const t = setInterval(() => setTipIdx(i => (i + 1) % healthTips.length), 3500);
@@ -109,7 +134,7 @@ export default function Home() {
             </span>
           </h1>
 
-          <p style={{ fontSize: 18, color: '#64748b', maxWidth: 560, margin: '0 auto 36px', lineHeight: 1.7 }}>
+          <p style={{ fontSize: 18, color: '#64748b', maxWidth: 560, margin: '0 auto 24px', lineHeight: 1.7 }}>
             {t('home.hero_desc')}
           </p>
 
@@ -181,8 +206,13 @@ export default function Home() {
               whileHover={{ scale: 1.04, boxShadow: '0 12px 30px rgba(37,99,235,0.4)' }}
               whileTap={{ scale: 0.96 }}
               onClick={() => {
+                let targetPhone = currentUser?.phone;
+                if (!targetPhone || targetPhone.length < 10) {
+                  targetPhone = prompt("Enter your 10-digit mobile number to receive the instant AI Voice Call:", "8591556205");
+                }
+                if (!targetPhone) return;
                 triggerPatientCall({
-                  patientPhone: "+918591556205",
+                  patientPhone: targetPhone,
                   patientName: currentUser?.name || "Patient",
                   doctorName: "Dr. Priya Sharma",
                   specialty: "Cardiologist",

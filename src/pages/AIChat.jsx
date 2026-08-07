@@ -25,41 +25,41 @@ const FAKE_NAME_BLOCKLIST = [
 
 function validateNameStrict(val) {
   const trimmed = (val || '').trim();
-  
+
   // Check minimum length
   if (trimmed.length < 5) {
     return { valid: false, reason: 'too_short' };
   }
-  
+
   // Must contain only letters, spaces, hyphens, apostrophes
   if (!/^[a-zA-Z\s'\-\.]+$/.test(trimmed)) {
     return { valid: false, reason: 'invalid_chars' };
   }
-  
+
   const words = trimmed.toLowerCase().split(/\s+/).filter(w => w.length > 0);
-  
+
   // Must have at least 2 words (first name + last name)
   if (words.length < 2) {
     return { valid: false, reason: 'needs_full_name' };
   }
-  
+
   // Check each word
   for (const word of words) {
     // Word minimum 2 chars (but typically real names are 3+)
     if (word.length < 2) {
       return { valid: false, reason: 'word_too_short' };
     }
-    
+
     // Check if word is in blocklist
     if (FAKE_NAME_BLOCKLIST.includes(word)) {
       return { valid: false, reason: 'blocked_word' };
     }
-    
+
     // Reject purely repeated characters (e.g. "aaa", "zzz")
     if (word.length >= 2 && new Set(word).size === 1) {
       return { valid: false, reason: 'repeated_chars' };
     }
-    
+
     // Reject excessive character repetition (more than 50% same char)
     const charCounts = {};
     for (const char of word) {
@@ -69,18 +69,18 @@ function validateNameStrict(val) {
     if (maxCount / word.length > 0.5) {
       return { valid: false, reason: 'too_many_repeats' };
     }
-    
+
     // Check for at least one vowel and one consonant (realistic names)
     const hasVowel = /[aeiou]/.test(word);
     const hasConsonant = /[bcdfghjklmnpqrstvwxyz]/.test(word);
     if (!hasVowel || !hasConsonant) {
       return { valid: false, reason: 'unrealistic_pattern' };
     }
-    
+
     // First letter must be uppercase in original input, but accept if user forgot
     // We'll be lenient here
   }
-  
+
   return { valid: true, reason: null };
 }
 
@@ -121,7 +121,7 @@ function getAIMessage(step, t, ctx = {}) {
 function AITyping() {
   return (
     <div style={{ display: 'flex', gap: 4, padding: '12px 16px', alignItems: 'center' }}>
-      {[0,1,2].map(i => <div key={i} className="typing-dot" style={{ animationDelay: `${i * 0.2}s` }} />)}
+      {[0, 1, 2].map(i => <div key={i} className="typing-dot" style={{ animationDelay: `${i * 0.2}s` }} />)}
     </div>
   );
 }
@@ -186,10 +186,10 @@ export default function AIChat() {
         break;
       }
     }
-    
-    const specialties = [{name: 'General Physician'}, {name: 'Cardiologist'}, {name: 'Dermatologist'}, {name: 'Pediatrician'}];
+
+    const specialties = [{ name: 'General Physician' }, { name: 'Cardiologist' }, { name: 'Dermatologist' }, { name: 'Pediatrician' }];
     let candidates = specialties.map(s => doctors.find(d => d.specialty === s.name && d.available)).filter(Boolean);
-    
+
     if (specialtyMatch) {
       const bestMatch = doctors.find(d => d.specialty === specialtyMatch && d.available);
       if (bestMatch) {
@@ -203,7 +203,7 @@ export default function AIChat() {
         candidates = [priya, ...candidates.filter(d => d.id !== 'd1')];
       }
     }
-    
+
     return candidates.slice(0, 5); // Show up to 5 diverse options
   }
 
@@ -316,8 +316,8 @@ export default function AIChat() {
       } else if (mode === 'check') {
         // Selecting a doctor to check slots
         const normalizedInput = val.toLowerCase().replace('dr.', '').trim();
-        const doc = doctors.find(d => 
-          d.id.toLowerCase() === normalizedInput || 
+        const doc = doctors.find(d =>
+          d.id.toLowerCase() === normalizedInput ||
           d.name.toLowerCase().replace('dr.', '').trim() === normalizedInput ||
           d.name.toLowerCase().trim() === val.toLowerCase().trim()
         );
@@ -332,12 +332,12 @@ export default function AIChat() {
       } else {
         // Normal booking flow - selecting a doctor
         const normalizedInput = val.toLowerCase().replace('dr.', '').trim();
-        const doc = doctors.find(d => 
-          d.id.toLowerCase() === normalizedInput || 
+        const doc = doctors.find(d =>
+          d.id.toLowerCase() === normalizedInput ||
           d.name.toLowerCase().replace('dr.', '').trim() === normalizedInput ||
           d.name.toLowerCase().trim() === val.toLowerCase().trim()
         );
-        
+
         if (!doc) {
           addAI(t('aichat.invalid_doctor') || "I couldn't find that doctor. Please pick one from the list above.");
           return;
@@ -465,7 +465,7 @@ export default function AIChat() {
 
   async function processBooking() {
     console.log("🚀 Initiating booking for Doctor ID:", ctx.doctor.id, "Name:", ctx.doctor.name);
-    
+
     const aptPromise = bookAppointment({
       doctorId: ctx.doctor.id,
       doctorEmail: ctx.doctor.email,
@@ -478,15 +478,15 @@ export default function AIChat() {
       time: ctx.time,
       fee: ctx.doctor.fee,
     });
-    
+
     setDone(true);
     addAI(t('aichat.confirmed', { doctor: ctx.doctor.name, date: ctx.date, time: ctx.time }), 600);
-    
+
     toast.success(`Booking sent to ${ctx.doctor.name} (ID: ${ctx.doctor.id})`, {
       icon: '📡',
       duration: 5000
     });
-    
+
     const apt = await aptPromise;
     if (apt) {
       setTimeout(() => navigate(`/confirmation/${apt.id}`), 2500);
@@ -498,22 +498,22 @@ export default function AIChat() {
   async function processReschedule() {
     setDone(true);
     addAI(`✅ Your appointment has been rescheduled to **${ctx.date}** at **${ctx.time}**. You'll receive a confirmation email shortly.`, 800);
-    
+
     toast.success('Appointment rescheduled! ✅', { icon: '📅', duration: 5000 });
-    
+
     await rescheduleAppointment(selectedAptId, ctx.date, ctx.time);
-    
+
     setTimeout(() => navigate('/appointments'), 2500);
   }
 
   async function processCancel() {
     setDone(true);
     addAI(`✅ Your appointment has been cancelled. You'll receive a confirmation email shortly.`, 800);
-    
+
     toast.success('Appointment cancelled! ❌', { icon: '🔄', duration: 5000 });
-    
+
     await cancelAppointment(selectedAptId);
-    
+
     setTimeout(() => navigate('/appointments'), 2500);
   }
 
@@ -571,7 +571,7 @@ export default function AIChat() {
 
           {/* Quick-action cards shown before conversation starts */}
           {messages.length === 0 && !isTyping && (
-            <motion.div initial={{ opacity: 0, y:10 }} animate={{ opacity: 1, y:0 }}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               style={{ padding: '20px 0 8px' }}>
               <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600, marginBottom: 12, textAlign: 'center' }}>What would you like to do?</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -583,7 +583,7 @@ export default function AIChat() {
                 ].map(qa => (
                   <motion.button key={qa.label}
                     whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => { addUser(qa.action); processStep(qa.action.replace('I want to ','').split(' ')[0] === 'book' ? 'skip-to-name' : qa.action); setStep('name'); addAI(getAIMessage('name', t), 800); }}
+                    onClick={() => { addUser(qa.action); processStep(qa.action.replace('I want to ', '').split(' ')[0] === 'book' ? 'skip-to-name' : qa.action); setStep('name'); addAI(getAIMessage('name', t), 800); }}
                     style={{
                       padding: '16px', borderRadius: 16, border: `1.5px solid ${qa.color}30`,
                       background: darkMode ? `${qa.color}12` : `${qa.color}08`,
@@ -712,15 +712,15 @@ export default function AIChat() {
                         overflow: 'hidden'
                       }}>
                       {idx === 0 && (
-                        <div style={{ 
-                          position: 'absolute', top: 0, right: 0, 
-                          background: '#2563eb', color: 'white', 
+                        <div style={{
+                          position: 'absolute', top: 0, right: 0,
+                          background: '#2563eb', color: 'white',
                           padding: '2px 10px', fontSize: 9, fontWeight: 900,
                           borderBottomLeftRadius: 12, textTransform: 'uppercase'
                         }}>{t('aichat.recommended')}</div>
                       )}
-                      <div style={{ 
-                        width: 48, height: 48, borderRadius: 12, 
+                      <div style={{
+                        width: 48, height: 48, borderRadius: 12,
                         background: `linear-gradient(135deg, ${doc.avatarColor}, ${doc.avatarColor}88)`,
                         color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16
                       }}>{doc.avatar}</div>
@@ -737,10 +737,10 @@ export default function AIChat() {
                       </div>
                     </motion.div>
                   ))}
-                  <button onClick={() => setStep('symptoms')} style={{ 
-                    background: 'none', border: 'none', color: '#64748b', 
-                    fontSize: 12, fontWeight: 600, cursor: 'pointer', 
-                    marginTop: 4, textAlign: 'center', width: '100%' 
+                  <button onClick={() => setStep('symptoms')} style={{
+                    background: 'none', border: 'none', color: '#64748b',
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    marginTop: 4, textAlign: 'center', width: '100%'
                   }}>{t('aichat.none_of_these')}</button>
                 </div>
               )}
@@ -879,10 +879,12 @@ export default function AIChat() {
           {/* Voice AI coming soon badge */}
           {!listening && (
             <div style={{ position: 'relative' }}>
-              <div style={{ position: 'absolute', top: -20, left: '50%', transform: 'translateX(-50%)',
+              <div style={{
+                position: 'absolute', top: -20, left: '50%', transform: 'translateX(-50%)',
                 fontSize: 8, fontWeight: 800, color: '#7c3aed', whiteSpace: 'nowrap',
                 background: 'rgba(124,58,237,0.12)', padding: '1px 6px', borderRadius: 6,
-                border: '1px solid rgba(124,58,237,0.3)' }}>{t('aichat.voice_ai')}</div>
+                border: '1px solid rgba(124,58,237,0.3)'
+              }}>{t('aichat.voice_ai')}</div>
             </div>
           )}
 

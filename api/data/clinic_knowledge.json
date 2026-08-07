@@ -1,0 +1,114 @@
+[
+  {
+    "id": "doc-001",
+    "category": "clinic_info",
+    "title": "Medi AI Health Center Operations & Working Hours",
+    "content": "Medi AI Health Center operates Monday through Saturday from 8:00 AM to 8:00 PM, and Sundays from 9:00 AM to 2:00 PM. Emergency consultations, triage support, and AI Voice assistant bookings are available 24/7 online.",
+    "keywords": ["hours", "timings", "open", "sunday", "schedule", "working hours", "emergency", "24/7", "address", "location"]
+  },
+  {
+    "id": "doc-002",
+    "category": "doctor_profile",
+    "title": "Dr. Priya Sharma - Senior Cardiologist (Apollo Hospitals, Mumbai)",
+    "content": "Dr. Priya Sharma is a board-certified Senior Cardiologist with 12 years of experience in interventional cardiology and complex heart procedures at Apollo Hospitals Mumbai. Consultation Fee: ₹800. Languages: English, Hindi, Marathi. Available Monday to Friday.",
+    "keywords": ["priya sharma", "cardiologist", "heart", "apollo hospital", "mumbai", "cardiology", "chest pain", "blood pressure", "fee 800"]
+  },
+  {
+    "id": "doc-003",
+    "category": "doctor_profile",
+    "title": "Dr. Rahul Mehta - General Physician (Fortis Healthcare, Pune)",
+    "content": "Dr. Rahul Mehta is a primary care general physician with 8 years of experience in preventive medicine, chronic disease management, fever, and general health checkups at Fortis Healthcare Pune. Consultation Fee: ₹500. Languages: English, Hindi.",
+    "keywords": ["rahul mehta", "general physician", "fever", "cold", "flu", "fortis", "pune", "primary care", "fee 500"]
+  },
+  {
+    "id": "doc-004",
+    "category": "doctor_profile",
+    "title": "Dr. Ananya Krishnan - Dermatologist (Max Super Speciality, Delhi)",
+    "content": "Dr. Ananya Krishnan is a board-certified Dermatologist with 10 years of experience specializing in cosmetic procedures, acne, eczema, hair loss, and skin cancer treatments at Max Super Speciality Delhi. Consultation Fee: ₹700. Languages: English, Tamil, Hindi.",
+    "keywords": ["ananya krishnan", "dermatologist", "skin", "hair", "acne", "eczema", "max hospital", "delhi", "fee 700"]
+  },
+  {
+    "id": "doc-005",
+    "category": "doctor_profile",
+    "title": "Dr. Vikram Nair - Orthopedist (Narayana Health, Bangalore)",
+    "content": "Dr. Vikram Nair is a leading Orthopedic Surgeon with 15 years of experience specializing in joint replacements, knee/hip surgery, fracture management, and sports medicine injuries at Narayana Health Bangalore. Consultation Fee: ₹900. Languages: English, Malayalam, Kannada.",
+    "keywords": ["vikram nair", "orthopedist", "bone", "joint replacement", "knee", "fracture", "narayana health", "bangalore", "fee 900"]
+  },
+  {
+    "id": "doc-006",
+    "category": "doctor_profile",
+    "title": "Dr. Sneha Patil - Pediatrician (Rainbow Children's Hospital, Hyderabad)",
+    "content": "Dr. Sneha Patil is a dedicated Pediatric Specialist with 9 years of experience in child healthcare, infant nutrition, developmental medicine, and childhood immunization programs at Rainbow Children's Hospital Hyderabad. Consultation Fee: ₹600. Languages: English, Marathi, Telugu.",
+    "keywords": ["sneha patil", "pediatrician", "child doctor", "kids", "vaccination", "immunization", "rainbow hospital", "hyderabad", "fee 600"]
+  },
+  {
+    "id": "doc-007",
+    "category": "doctor_profile",
+    "title": "Dr. Arun Kumar - Senior Neurologist (AIIMS, Delhi)",
+    "content": "Dr. Arun Kumar is a nationally acclaimed Neurologist with 18 years of experience specializing in stroke management, epilepsy, Parkinson's disease, migraines, and neurodegenerative disorders at AIIMS Delhi. Consultation Fee: ₹1200. Languages: English, Hindi.",
+    "keywords": ["arun kumar", "neurologist", "brain", "stroke", "epilepsy", "migraine", "headache", "aiims", "delhi", "fee 1200"]
+  },
+  {
+    "id": "doc-008",
+    "category": "doctor_profile",
+    "title": "Dr. Meera Joshi - Gynecologist & OB/GYN (Cloudnine Hospital, Mumbai)",
+    "content": "Dr. Meera Joshi is a senior OB/GYN consultant with 11 years of experience specializing in high-risk pregnancy care, women's reproductive health, and laparoscopic surgeries at Cloudnine Hospital Mumbai. Consultation Fee: ₹750. Languages: English, Hindi, Marathi.",
+    "keywords": ["meera joshi", "gynecologist", "pregnancy", "women health", "obgyn", "cloudnine", "mumbai", "fee 750"]
+  },
+  {
+    "id": "doc-009",
+    "category": "doctor_profile",
+    "title": "Dr. Suresh Iyer - Ophthalmologist (Eye Care Super Speciality, Chennai)",
+    "content": "Dr. Suresh Iyer is a senior Eye Specialist with 14 years of experience specializing in cataract surgery, LASIK vision correction, and glaucoma treatment at Eye Care Super Speciality Chennai. Consultation Fee: ₹650. Languages: English, Tamil.",
+    "keywords": ["suresh iyer", "ophthalmologist", "eye doctor", "vision", "lasik", "cataract", "chennai", "fee 650"]
+  },
+  {
+    "id": "doc-010",
+    "category": "policy",
+    "title": "Appointment Booking, Rescheduling & Cancellation Policy",
+    "content": "Appointments can be booked up to 30 days in advance via website or AI Voice agent. Free cancellation or rescheduling is permitted up to 2 hours prior to the slot time. Late arrivals beyond 15 minutes may require rescheduling to avoid delay for other patients.",
+    "keywords": ["booking", "reschedule", "cancel", "cancellation policy", "rescheduling fee", "late arrival", "30 days"]
+  },
+  {
+    "id": "doc-011",
+    "category": "insurance",
+    "title": "Accepted Health Insurance & Cashless Billing Process",
+    "content": "We accept major health insurance providers including Star Health, HDFC ERGO, ICICI Lombard, Niva Bupa, Care Health, and Max Bupa. Cashless claims are processed at the reception desk upon producing a valid Government photo ID and active policy card.",
+    "keywords": ["insurance", "cashless", "billing", "claims", "star health", "hdfc ergo", "icici lombard", "niva bupa", "care health", "reimbursement"]
+  },
+  {
+    "id": "doc-012",
+    "category": "preparation",
+    "title": "Pre-Appointment & Lab Fasting Guidelines",
+    "content": "For General Health Checkups, Blood Glucose (Fasting), and Lipid Profile tests, patients must fast for 8 to 10 hours prior to sample collection. Water is permitted. Please bring past medical records, prescriptions, government ID, and insurance cards.",
+    "keywords": ["fasting", "lab test", "preparation", "blood test", "lipid profile", "documents", "id card", "reports"]
+  },
+  {
+    "id": "doc-013",
+    "category": "teleconsultation",
+    "title": "AI Voice Calling Agent & Teleconsultation Services",
+    "content": "Patients can place direct AI voice calls or request automated phone calls via OmniDim Agent (+918591556205) to check availability, confirm appointments, or speak with an AI assistant. Digitally signed prescriptions are sent instantly via WhatsApp and Email.",
+    "keywords": ["teleconsultation", "voice call", "ai agent", "omnidim", "phone call", "whatsapp", "email", "digital prescription"]
+  },
+  {
+    "id": "doc-014",
+    "category": "emergency",
+    "title": "Emergency Response & 24/7 Trauma Services",
+    "content": "For medical emergencies, severe chest pain, or trauma, contact our 24/7 Emergency Line immediately at +918591556205 or visit the Emergency Ward entrance. Our AI triage system instantly notifies on-duty emergency physicians.",
+    "keywords": ["emergency", "trauma", "chest pain", "ambulance", "24/7", "critical care", "urgent"]
+  },
+  {
+    "id": "doc-015",
+    "category": "payment",
+    "title": "Accepted Payment Methods & Refund Processing",
+    "content": "We accept UPI (Google Pay, PhonePe, Paytm), Debit & Credit Cards (Visa, Mastercard, RuPay), and Net Banking. In case of cancellation, eligible refunds are automatically processed back to the original payment method within 3 to 5 business days.",
+    "keywords": ["payment", "upi", "credit card", "debit card", "refund", "google pay", "phonepe", "paytm"]
+  },
+  {
+    "id": "doc-016",
+    "category": "lab_services",
+    "title": "Diagnostic Lab Reports & Home Sample Collection",
+    "content": "Diagnostic lab test results are published online on the patient dashboard within 6 to 12 hours. Senior citizens and mobility-impaired patients can request free Home Sample Collection by selecting the option during booking.",
+    "keywords": ["lab reports", "diagnostic", "blood report", "home collection", "sample collection", "results", "download report"]
+  }
+]

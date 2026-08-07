@@ -238,7 +238,7 @@ export default function DoctorDashboard() {
                         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                           title="Call Patient with Omnidimension AI Voice Agent"
                           onClick={() => triggerPatientCall({
-                            patientPhone: import.meta.env.VITE_DEFAULT_PATIENT_PHONE || "+918591556205",
+                            patientPhone: apt.patientPhone || apt.phone || apt.mobile || currentUser?.phone || "+918591556205",
                             patientName: apt.patientName || "Patient",
                             doctorName: doctorProfile?.name || apt.doctorName || "Dr. Priya Sharma",
                             specialty: doctorProfile?.specialty || "Specialist",

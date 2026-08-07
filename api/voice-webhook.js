@@ -42,36 +42,67 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. BOOK APPOINTMENT
-    if (action === 'book_appointment') {
+    // 2. BOOK APPOINTMENT (Autonomous Receptionist Call Intake)
+    if (action === 'book_appointment' || action === 'intake_complete') {
       const {
-        patientName = 'Patient',
+        patientName = 'Guest Patient',
         patientEmail = '',
         patientPhone = '',
+        age = 30,
+        gender = 'Unspecified',
+        symptoms = 'General Consultation',
         doctorName = 'Dr. Priya Sharma',
-        specialty = 'Cardiologist',
         date = new Date().toISOString().split('T')[0],
         time = '10:00 AM',
-        hospital = 'Apollo Hospitals',
-        symptoms = 'General Checkup',
-        appointmentType = 'Consultation'
+        appointmentType = 'In-Person Consultation',
+        status = 'confirmed',
+        hospital = 'Medi AI Clinic'
       } = args;
 
       const bookingId = `APT_${Date.now().toString().slice(-6)}`;
+
+      // Save to MongoDB
+      try {
+        const connectDB = (await import('../src/utils/db.js')).default;
+        const Appointment = (await import('./models/Appointment.js')).default;
+        await connectDB();
+
+        const newAppointment = new Appointment({
+          patientId: `PAT_${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+          patientName,
+          patientEmail,
+          patientPhone,
+          age: parseInt(age) || 30,
+          gender,
+          symptoms,
+          doctorId: 'DOC_' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+          doctorName,
+          date,
+          time,
+          appointmentType,
+          status: status || 'confirmed',
+          bookedAt: new Date()
+        });
+
+        await newAppointment.save();
+        console.log(`✅ AI Voice Receptionist saved appointment for ${patientName} to DB!`);
+      } catch (dbErr) {
+        console.warn('⚠️ Webhook DB save fallback warning:', dbErr.message);
+      }
 
       // 📧 Trigger Brevo Email if email provided
       if (patientEmail) {
         try {
           const host = req.headers.host || 'localhost:3000';
           const protocol = req.headers['x-forwarded-proto'] || 'http';
-          const emailRes = await fetch(`${protocol}://${host}/api/send-email`, {
+          await fetch(`${protocol}://${host}/api/send-email`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               toEmail: patientEmail,
               toName: patientName,
               doctorName,
-              specialty,
+              specialty: appointmentType,
               date,
               time,
               hospital,
@@ -81,7 +112,6 @@ export default async function handler(req, res) {
               isConfirmed: true
             })
           });
-          console.log('✅ Brevo Email status from webhook:', emailRes.status);
         } catch (e) {
           console.warn('⚠️ Webhook email trigger warning:', e.message);
         }
@@ -90,14 +120,17 @@ export default async function handler(req, res) {
       return res.status(200).json({
         success: true,
         bookingId,
-        message: `Appointment successfully booked for ${patientName} with ${doctorName} on ${date} at ${time}. Confirmation email and calendar invite dispatched.`,
-        bookingDetails: {
+        message: `Appointment successfully registered by AI Receptionist for ${patientName} with ${doctorName} on ${date} at ${time}.`,
+        appointmentDetails: {
           bookingId,
           patientName,
+          age,
+          gender,
+          symptoms,
           doctorName,
           date,
           time,
-          hospital,
+          appointmentType,
           status: 'confirmed'
         }
       });

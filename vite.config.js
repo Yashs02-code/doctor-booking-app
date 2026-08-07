@@ -12,16 +12,18 @@ export default defineConfig({
       name: 'local-api-handler',
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
-          if (req.url.startsWith('/api/make-call') || req.url.startsWith('/api/voice-webhook')) {
+          const urlPath = req.url.split('?')[0];
+          if (urlPath.startsWith('/api/') && !urlPath.startsWith('/api/omnidim')) {
             let body = '';
             req.on('data', chunk => { body += chunk; });
             req.on('end', async () => {
               try {
                 req.body = body ? JSON.parse(body) : {};
-                const fileName = req.url.startsWith('/api/voice-webhook') ? 'voice-webhook.js' : 'make-call.js';
+                const routeName = urlPath.replace(/^\/api\//, '');
+                const fileName = routeName.endsWith('.js') ? routeName : `${routeName}.js`;
                 const absolutePath = path.resolve(process.cwd(), 'api', fileName);
                 const fileUrl = pathToFileURL(absolutePath).href;
-                const apiModule = await import(fileUrl);
+                const apiModule = await import(`${fileUrl}?t=${Date.now()}`);
                 const handler = apiModule.default;
                 
                 // Polyfill Vercel response helper methods
@@ -36,6 +38,7 @@ export default defineConfig({
               } catch (err) {
                 console.error('Local API dev handler error:', err);
                 res.statusCode = 500;
+                res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify({ success: false, error: err.message }));
               }
             });
